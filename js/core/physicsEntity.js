@@ -1,4 +1,7 @@
-class PhysicsEntity extends GameEntity {
+import { GameEntity } from './gameEntity.js';
+import { GameUtils } from './utils.js';
+
+export class PhysicsEntity extends GameEntity {
     constructor(gameManager){
         super(gameManager);
         this.velocity = { x: 0, y: 0 };

@@ -1,31 +1,48 @@
-class CreaturePlayer extends Creature {
+import { AnimatedSprite } from 'pixi.js';
+import { Creature } from './creature.js';
+import { GameUtils } from '../../core/utils.js';
+
+export class CreaturePlayer extends Creature {
     constructor(gameManager, sheet) {
-        super(gameManager);
+        super(gameManager); // This calls Creature's constructor, which creates segments and adds them to world.
 
-        this.keysPressed = [];
+        // Remove segments created by the parent class, keeping only the head (this)
+        // We iterate from 1 to keep the first segment (the player's head)
+        for (let i = 1; i < this.segments.length; i++) {
+            const segmentToRemove = this.segments[i];
+            // Check if the segment's sprite exists and is a child of the world container before attempting to remove
+            if (segmentToRemove.sprite && this.gameManager.world.contains(segmentToRemove.sprite)) {
+                this.gameManager.world.removeChild(segmentToRemove.sprite);
+            }
+            // Remove debug shapes associated with segments if they exist
+            if (segmentToRemove.debugShape && this.gameManager.world.contains(segmentToRemove.debugShape)) {
+                this.gameManager.world.removeChild(segmentToRemove.debugShape);
+            }
+        }
+        this.segments = [this]; // Reset segments array to only contain the player head
 
-        // Store the sheet and current animation name on the instance
+        // Now, set up the human player sprite using the provided spritesheet
         this.sheet = sheet;
-        this.currentAnimation = 'idleDown';
-
-        // Create the sprite using the sheet that was passed in
+        this.currentAnimation = 'idleDown'; // Default animation state
         this.sprite = new PIXI.AnimatedSprite(this.sheet.animations[this.currentAnimation]);
         
         this.sprite.animationSpeed = 0.15;
         this.sprite.play();
-        this.sprite.anchor.set(0.5, 1);
+        this.sprite.anchor.set(0.5, 1); // Adjust anchor for proper positioning relative to feet
         
+        // Initial position for the player
         this.position = { x: 300, y: 300 };
         this.sprite.x = this.position.x;
         this.sprite.y = this.position.y;
+    }
 
-        // this.gameManager.world.addChild(this.sprite);
+    // Override methods to prevent the player from adding or splitting segments
+    addNewSegment() {
+        console.log("Player cannot add segments.");
+    }
 
-        // Movimiento del jugador con las teclas
-        // window.addEventListener('keydown', (event) => this.onKeyDown(event));
-        // window.addEventListener('keyup', (event) => this.onKeyUp(event));
-
-        // window.addEventListener('pointerdown', (event) => console.log(event));
+    splitSegmentAtIndex(id) {
+        console.log("Player cannot split segments.");
     }
 
     onKeyDown(event) {
@@ -36,12 +53,12 @@ class CreaturePlayer extends Creature {
         this.keysPressed[event.key] = false;
     }
 
-    onKeyPressed(event) {
-        let movementInput = 0; // Inputs del jugador
-        let positionToMove = this.desiredPosition + movementInput;
-
-        this.desiredPosition = positionToMove;
-    }
+    // This method is not used in the current player movement logic.
+    // onKeyPressed(event) {
+    //     let movementInput = 0;
+    //     let positionToMove = this.desiredPosition + movementInput;
+    //     this.desiredPosition = positionToMove;
+    // }
 
     update(ticker) {
         const keys = this.gameManager.keysPressed;
@@ -58,17 +75,22 @@ class CreaturePlayer extends Creature {
             else if (right) this.playAnimation('walkRight');
             else if (left) this.playAnimation('walkLeft');
         } else {
-            // If not moving, switch to the idle animation
+            // If not moving, switch to the idle animation corresponding to the last direction
             if (this.currentAnimation.startsWith('walk')) {
                 this.playAnimation(this.currentAnimation.replace('walk', 'idle'));
             }
         }
 
-        super.update(ticker);
+        super.update(ticker); // Call parent update for movement logic
         
+        // Calculate desired position based on input
         let dirToMoveX = left + right;
         let dirToMoveY = up + down;
-        let dirToMove = { x: dirToMoveX * this.size * 2, y: dirToMoveY * this.size * 2 };
+        // The movement speed should be a fixed value, not multiplied by size, unless size dictates speed.
+        // For a human player, a consistent speed might be better.
+        // Let's use a base speed. You can adjust this value.
+        const playerMoveSpeed = 5; // Example speed, adjust as needed
+        let dirToMove = { x: dirToMoveX * playerMoveSpeed, y: dirToMoveY * playerMoveSpeed };
 
         this.desiredPosition = GameUtils.sumVec2(this.position, dirToMove);
     }

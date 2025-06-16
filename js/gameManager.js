@@ -1,22 +1,29 @@
-class GameManager {
+import { Application, Container, TilingSprite, Assets, Graphics, AnimatedSprite } from 'pixi.js';
+import { GameUtils } from './core/utils.js';
+import { GameEntity } from './core/gameEntity.js'; // Added for Cursor if it extends GameEntity
+// import { Cursor } from './cursor.js'; // Assuming Cursor is a module, if it's external, its class must be exported.
+import { SmcExample } from './entities/smcExample.js';
+import { CreaturePlayer } from './entities/creature/creaturePlayer.js';
+import { CreatureBot } from './entities/creature/creatureBot.js';
+import { Food } from './entities/food.js';
+
+export class GameManager {
     constructor(){
         this.gravity = { x: 0, y: 0 };
         this.wind = { x: 0, y: 0 };
         this.gameEntities = [];
-        this.app = new PIXI.Application();
-        this.cursor = new Cursor(this);
+        this.app = new Application();
+        this.cursor = new Cursor(this); // Assuming Cursor is now a class
 
         this.keysPressed = {};
 
-        this.world = new PIXI.Container();
+        this.world = new Container();
         this.app.stage.addChild(this.world);
 
         window.addEventListener("keydown", e => this.keysPressed[e.key] = true);
         window.addEventListener("keyup", e => this.keysPressed[e.key] = false);
 
         this.init();
-
-        // this.setupApp().then(r => this.onAppInitialized());
         let smth = new SmcExample(this);
     }
 
@@ -41,26 +48,22 @@ class GameManager {
     }
 
     async init() {
-        // We already have this.app from the constructor
         await this.setupApp(); 
 
-        // Define the asset bundle
-        PIXI.Assets.addBundle('game-assets', {
-            'tile-dirt': 'assets/images/tile-dirt.jpg', // Path to new assets folder
-            'playerSheet': 'assets/images/player2.json'  // Path to new assets folder
+        Assets.addBundle('game-assets', {
+            'tile-dirt': 'assets/images/tile-dirt.jpg',
+            'playerSheet': 'assets/images/player2.json'
         });
 
-        // Load the bundle
-        this.loadedAssets = await PIXI.Assets.loadBundle('game-assets');
+        this.loadedAssets = await Assets.loadBundle('game-assets');
 
-        // Create background and entities
         this.background = await this.createBackground(this.app, this.loadedAssets['tile-dirt']);
         this.onAppInitialized();
     }
 
     async createBackground(app, texture) {
-        const background = new PIXI.TilingSprite({
-            texture, // Use the passed texture
+        const background = new TilingSprite({
+            texture,
             width: app.screen.width * 4,
             height: app.screen.height * 4,
         });
@@ -102,7 +105,6 @@ class GameManager {
     }
 
     createPlayer(){
-        // Pass the loaded spritesheet directly into the constructor
         const player = new CreaturePlayer(this, this.loadedAssets.playerSheet);
         player.segments.forEach(i => {
             this.gameEntities.push(i);

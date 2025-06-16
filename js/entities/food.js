@@ -1,4 +1,9 @@
-class Food extends PhysicsEntity {
+import { PhysicsEntity } from '../../core/physicsEntity.js';
+import { Graphics } from 'pixi.js';
+import { GameUtils } from '../../core/utils.js';
+import { Creature } from './creature/creature.js';
+
+export class Food extends PhysicsEntity {
     constructor(gameManager){
         super(gameManager);
 

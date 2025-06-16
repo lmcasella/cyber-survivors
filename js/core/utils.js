@@ -1,4 +1,4 @@
-class GameUtils {
+export class GameUtils {
     /**
      * Linearly interpolates `a` and `b` by `t`.
      *

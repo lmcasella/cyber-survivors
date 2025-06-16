@@ -1,4 +1,8 @@
-class CreatureSegment extends GameEntity {
+import { GameEntity } from '../gameEntity.js';
+import { Graphics } from 'pixi.js';
+import { GameUtils } from '../../core/utils.js';
+
+export class CreatureSegment extends GameEntity {
     constructor(gameManager, segmentParams) {
         super(gameManager);
 

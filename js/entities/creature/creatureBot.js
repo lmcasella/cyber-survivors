@@ -1,4 +1,7 @@
-class CreatureBot extends Creature {
+import { Creature } from './creature.js';
+import { GameUtils } from '../../core/gameUtils.js';
+
+export class CreatureBot extends Creature {
     constructor(gameManager) {
         super(gameManager);
         this.setRandomDesiredPosition();

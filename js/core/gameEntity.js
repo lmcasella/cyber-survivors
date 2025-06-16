@@ -1,4 +1,6 @@
-class GameEntity {
+import { Graphics } from 'pixi.js';
+
+export class GameEntity {
     constructor(gameManager) {
         this.gameManager = gameManager;
         this.isSelectable = false;

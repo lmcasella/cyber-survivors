@@ -1,4 +1,8 @@
-class SmcExample extends GameEntity {
+import { GameEntity } from '../../core/gameEntity.js';
+import { StateMachineController } from '../state-machines/stateMachineController.js';
+import { StateExOne } from '../state-machines/examples/stateExOne.js';
+
+export class SmcExample extends GameEntity {
     constructor(gameManager){
         super(gameManager);
         this.stateMachine = new StateMachineController(this);
