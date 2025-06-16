@@ -1,8 +1,4 @@
-import { GameEntity } from "../../core/gameEntity";
-import { GameUtils } from "../../core/utils";
-import { Graphics } from "pixi.js";
-
-export class CreatureSegment extends GameEntity {
+class CreatureSegment extends GameEntity {
     constructor(gameManager, segmentParams) {
         super(gameManager);
 

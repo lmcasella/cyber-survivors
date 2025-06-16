@@ -1,9 +1,4 @@
-/**
- * Utility JavaScript file written by Gann4Life in order to work with PIXIJS
- * which aims to solve general problems that are solved in most game engines
- * for later reusability - 04.02.2025.
- */
-export class GameUtils {
+class GameUtils {
     /**
      * Linearly interpolates `a` and `b` by `t`.
      *

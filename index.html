@@ -4,21 +4,31 @@
     <meta charset="UTF-8">
     <title>PVJ Game</title>
     <style>
-        body {
-            margin: 0;
-        }
-
-        #debug-text{
-            position: absolute;
-            color: white;
-            z-index: 1;
-            bottom: 0;
-            padding-left: 25px;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #debug-text { position: absolute; color: white; bottom: 0; left: 10px; }
     </style>
+    <script src="https://pixijs.download/v8/pixi.js"></script>
 </head>
 <body>
     <p id="debug-text">#debug-text</p>
-    <script type="module" src="/src/main.js"></script>
+
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/gameEntity.js"></script>
+    <script src="js/core/physicsEntity.js"></script>
+
+    <!-- <script src="js/state-machines/state.js"></script>
+    <script src="js/state-machines/stateMachineController.js"></script> -->
+    
+    <script src="js/entities/creature/creature.js"></script>
+    <script src="js/entities/creature/creatureSegment.js"></script>
+    <script src="js/entities/food.js"></script>
+    
+    <script src="js/entities/creature/creaturePlayer.js"></script>
+    <script src="js/entities/creature/creatureBot.js"></script>
+
+    <!-- <script src="js/cursor.js"></script> -->
+    <script src="js/gameManager.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,10 +1,4 @@
-import {GameEntity} from "../core/gameEntity";
-import {Graphics} from "pixi.js";
-import {PhysicsEntity} from "../core/physicsEntity";
-import {GameUtils} from "../core/utils";
-import {Creature} from "./creature/creature";
-
-export class Food extends PhysicsEntity {
+class Food extends PhysicsEntity {
     constructor(gameManager){
         super(gameManager);
 

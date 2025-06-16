@@ -1,10 +1,4 @@
-import { Graphics } from "pixi.js";
-import { GameEntity } from '../core/gameEntity.js';
-
-/**
- * An example on how to use the GameEntity class.
- */
-export class ExampleEntity extends GameEntity {
+class ExampleEntity extends GameEntity {
     constructor(app) {
         super(app);
 

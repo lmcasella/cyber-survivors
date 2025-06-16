@@ -1,8 +1,4 @@
-import {Creature} from "./creature";
-import {GameUtils} from "../../core/utils";
-import {Graphics} from "pixi.js";
-
-export class CreatureBot extends Creature {
+class CreatureBot extends Creature {
     constructor(gameManager) {
         super(gameManager);
         this.setRandomDesiredPosition();

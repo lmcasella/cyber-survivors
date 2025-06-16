@@ -1,11 +1,4 @@
-import {GameEntity} from "./gameEntity";
-import {Graphics} from "pixi.js";
-import {GameUtils} from "./utils";
-
-/**
- * Represents an entity which has gravity and potential interactions with other elements often related to forces, inertia and velocity.
- */
-export class PhysicsEntity extends GameEntity {
+class PhysicsEntity extends GameEntity {
     constructor(gameManager){
         super(gameManager);
         this.velocity = { x: 0, y: 0 };

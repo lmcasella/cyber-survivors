@@ -1,8 +1,4 @@
-import {Creature} from "./creature";
-import {GameUtils} from "../../core/utils";
-import { Application, TilingSprite, Assets, Container, AnimatedSprite } from "pixi.js";
-
-export class CreaturePlayer extends Creature {
+class CreaturePlayer extends Creature {
     constructor(gameManager, sheet) {
         super(gameManager);
 
@@ -13,7 +9,7 @@ export class CreaturePlayer extends Creature {
         this.currentAnimation = 'idleDown';
 
         // Create the sprite using the sheet that was passed in
-        this.sprite = new AnimatedSprite(this.sheet.animations[this.currentAnimation]);
+        this.sprite = new PIXI.AnimatedSprite(this.sheet.animations[this.currentAnimation]);
         
         this.sprite.animationSpeed = 0.15;
         this.sprite.play();

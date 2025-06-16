@@ -1,21 +1,14 @@
-import { Application, TilingSprite, Assets, Container } from "pixi.js";
-import { CreaturePlayer } from "./entities/creature/creaturePlayer";
-import { CreatureBot } from "./entities/creature/creatureBot";
-import {Food} from "./entities/food";
-import { Cursor } from "./cursor";
-import {SmcExample} from "./entities/smcExample";
-
-export class GameManager {
+class GameManager {
     constructor(){
         this.gravity = { x: 0, y: 0 };
         this.wind = { x: 0, y: 0 };
         this.gameEntities = [];
-        this.app = new Application();
+        this.app = new PIXI.Application();
         this.cursor = new Cursor(this);
 
         this.keysPressed = {};
 
-        this.world = new Container();
+        this.world = new PIXI.Container();
         this.app.stage.addChild(this.world);
 
         window.addEventListener("keydown", e => this.keysPressed[e.key] = true);
@@ -48,25 +41,25 @@ export class GameManager {
     }
 
     async init() {
-        await this.setupApp();
+        // We already have this.app from the constructor
+        await this.setupApp(); 
 
-        /// --- THE FIX ---
-        // 1. First, we DEFINE a bundle and give it a name, like 'game-assets'.
-        Assets.addBundle('game-assets', {
-            'tile-dirt': 'images/tile-dirt.jpg',
-            'playerSheet': 'images/player2.json'
+        // Define the asset bundle
+        PIXI.Assets.addBundle('game-assets', {
+            'tile-dirt': 'assets/images/tile-dirt.jpg', // Path to new assets folder
+            'playerSheet': 'assets/images/player2.json'  // Path to new assets folder
         });
 
-        // 2. Then, we LOAD the bundle using the name we just gave it.
-        this.loadedAssets = await Assets.loadBundle('game-assets');
-        // --- END OF FIX ---
+        // Load the bundle
+        this.loadedAssets = await PIXI.Assets.loadBundle('game-assets');
 
+        // Create background and entities
         this.background = await this.createBackground(this.app, this.loadedAssets['tile-dirt']);
         this.onAppInitialized();
     }
 
     async createBackground(app, texture) {
-        const background = new TilingSprite({
+        const background = new PIXI.TilingSprite({
             texture, // Use the passed texture
             width: app.screen.width * 4,
             height: app.screen.height * 4,

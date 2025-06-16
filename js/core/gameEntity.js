@@ -1,9 +1,4 @@
-import {Graphics, TilingSprite, Assets} from "pixi.js";
-
-/**
- * Represents an individual game entity which contains its sprite, position, basic methods and a reference to the gameManager.
- */
-export class GameEntity {
+class GameEntity {
     constructor(gameManager) {
         this.gameManager = gameManager;
         this.isSelectable = false;

@@ -1,8 +1,4 @@
-import {GameEntity} from "../core/gameEntity";
-import {StateMachineController} from "../state-machines/stateMachineController";
-import {StateExOne} from "../state-machines/examples/stateExOne";
-
-export class SmcExample extends GameEntity {
+class SmcExample extends GameEntity {
     constructor(gameManager){
         super(gameManager);
         this.stateMachine = new StateMachineController(this);

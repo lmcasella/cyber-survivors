@@ -1,5 +1,4 @@
-import {GameManager} from "./gameManager";
-import { TilingSprite } from 'pixi.js';
+
 
 const gameManager = new GameManager();
 // const app = new Application();
