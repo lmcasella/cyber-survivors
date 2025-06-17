@@ -1,7 +1,7 @@
 /**
  * A behaviour definition driven by a state machine controller.
  */
-export default class State {
+class State {
 
     constructor(){
         this.context = undefined;

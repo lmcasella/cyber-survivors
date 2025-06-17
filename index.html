@@ -2,16 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PVJ Game</title>
+    <title>Cyber Survivors</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-        #debug-text { position: absolute; color: white; bottom: 0; left: 10px; }
-    </style>
-    <script src="https://pixijs.download/v8/pixi.js"></script>
-    </head>
+        /* Basic reset to make the canvas fill the screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+        }
+        </style>
+        <!-- <script src="https://pixijs.download/v8/pixi.min.js"></script> -->
+         <script src="js/pixi.js"></script>
+</head>
 <body>
-    <p id="debug-text">#debug-text</p>
 
     <script type="module" src="js/main.js"></script>
 </body>
