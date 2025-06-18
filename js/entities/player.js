@@ -10,7 +10,13 @@ export class Player extends Entity {
 
     this.sprite = new PIXI.AnimatedSprite(this.sheet.animations.idleDown);
     this.sprite.animationSpeed = 0.15;
-    this.sprite.anchor.set(0.5, 1.0);
+    
+    // --- THE CORRECT FIX ---
+    // Set the anchor to the center of the sprite.
+    // This matches the {x: 0.5, y: 0.5} pivot in your player2.json file
+    // and will correctly align all trimmed animation frames.
+    this.sprite.anchor.set(0.5, 0.5);
+
     this.sprite.currentAnimation = 'idleDown';
     this.sprite.play();
     

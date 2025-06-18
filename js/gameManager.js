@@ -26,7 +26,7 @@ export class GameManager {
 
     const assets = await AssetLoader.loadAssets();
 
-    const player = new Player(this, assets.playerSheet);
+    const player = new Player(this, assets);
     this.addEntity(player);
 
     // for (let i = 0; i < 10; i++) {
