@@ -9,9 +9,9 @@ export class GameManager {
     // Use the global PIXI object
     this.app = new PIXI.Application();
     this.input = new InputManager();
-
     this.entities = [];
-    this.world = this.app.stage;
+
+    this.world = new PIXI.Container();
   }
 
   async init() {
@@ -24,9 +24,12 @@ export class GameManager {
     document.body.appendChild(this.app.canvas);
     this.input.init();
 
+    this.app.stage.addChild(this.world);
+
     const assets = await AssetLoader.loadAssets();
 
     const player = new Player(this, assets);
+    this.player = player;
     this.addEntity(player);
 
     // for (let i = 0; i < 10; i++) {
@@ -46,5 +49,8 @@ export class GameManager {
     for (const entity of this.entities) {
       entity.update(ticker);
     }
+
+    this.world.pivot.copyFrom(this.player.position);
+    this.world.position.set(this.app.screen.width / 2, this.app.screen.height / 2);
   }
 }
