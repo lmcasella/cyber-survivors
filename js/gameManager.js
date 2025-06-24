@@ -1,8 +1,10 @@
 // No longer importing Application from 'pixi.js'
 import { AssetLoader } from './assetLoader.js';
 import { Player } from './entities/player.js';
-import { Enemy } from './entities/enemy.js';
+import { GruntEnemy } from './entities/enemy/gruntEnemy.js';
+import { FastEnemy } from './entities/enemy/fastEnemy.js';
 import { InputManager } from './inputManager.js';
+import { SpatialHash } from './core/spatialHash.js';
 
 export class GameManager {
   constructor() {
@@ -12,6 +14,8 @@ export class GameManager {
     this.entities = [];
 
     this.world = new PIXI.Container();
+    
+    this.spatialHash = new SpatialHash(100);
   }
 
   async init() {
@@ -32,10 +36,15 @@ export class GameManager {
     this.player = player;
     this.addEntity(player);
 
-    // for (let i = 0; i < 10; i++) {
-    //     const enemy = new Enemy(this, player);
-    //     this.addEntity(enemy);
-    // }
+    // Spawn 10 Grunt Enemies
+    for (let i = 0; i < 10; i++) {
+        this.addEntity(new GruntEnemy(this, player));
+    }
+
+    // Spawn 5 Fast Enemies
+    for (let i = 0; i < 5; i++) {
+        this.addEntity(new FastEnemy(this, player));
+    }
 
     this.app.ticker.add((ticker) => this.update(ticker));
   }
@@ -46,6 +55,11 @@ export class GameManager {
   }
 
   update(ticker) {
+    this.spatialHash.clear();
+    for (const entity of this.entities) {
+      this.spatialHash.add(entity);
+    }
+    
     for (const entity of this.entities) {
       entity.update(ticker);
     }
