@@ -9,43 +9,47 @@ export class BaseEnemy extends Entity {
     this.speed = 2;
     this.health = 10;
     this.neighborRadius = 100;
-    this.separationRadius = 100;
 
-    this.separationWeight = 3.5;
+    // Default boids weights - can be overridden by subclasses
+    this.separationWeight = 10.0;
+    this.alignmentWeight = 0.2;
+    this.cohesionWeight = 0.02;
+    this.playerAttackWeight = 1.0;
 
-    this.alignmentWeight = 1.0;
-
-    this.cohesionWeight = 1.0;
-
-    this.playerAttackWeight = 1.2;
+    // Add enemy type for grouping behavior
+    this.enemyType = this.constructor.name;
 
     this.sprite = null;
   }
 
   update(ticker) {
-    // --- The Optimization ---
     // Get the list of nearby entities ONCE using the spatial hash.
     const nearby = this.game.spatialHash.getNearby(this);
 
-    // Pass this short list to the Boids calculations.
+    // Calculate boids forces - following teacher's approach
     const separation = this.calculateSeparation(nearby);
     const alignment = this.calculateAlignment(nearby);
     const cohesion = this.calculateCohesion(nearby);
     const attack = this.calculatePlayerAttackForce();
 
-    // Apply weights to each force
-    separation.x *= this.separationWeight;
-    separation.y *= this.separationWeight;
-    alignment.x *= this.alignmentWeight;
-    alignment.y *= this.alignmentWeight;
-    cohesion.x *= this.cohesionWeight;
-    cohesion.y *= this.cohesionWeight;
-    attack.x *= this.playerAttackWeight;
-    attack.y *= this.playerAttackWeight;
+    // Sum all forces together
+    let totalForce = { x: 0, y: 0 };
+    
+    totalForce.x += (separation?.x || 0) * this.separationWeight;
+    totalForce.y += (separation?.y || 0) * this.separationWeight;
+    
+    totalForce.x += (alignment?.x || 0) * this.alignmentWeight;
+    totalForce.y += (alignment?.y || 0) * this.alignmentWeight;
+    
+    totalForce.x += (cohesion?.x || 0) * this.cohesionWeight;
+    totalForce.y += (cohesion?.y || 0) * this.cohesionWeight;
+    
+    totalForce.x += (attack?.x || 0) * this.playerAttackWeight;
+    totalForce.y += (attack?.y || 0) * this.playerAttackWeight;
 
-    // Add all forces together
-    this.velocity.x += separation.x + alignment.x + cohesion.x + attack.x;
-    this.velocity.y += separation.y + alignment.y + cohesion.y + attack.y;
+    // Apply the force to velocity
+    this.velocity.x += totalForce.x;
+    this.velocity.y += totalForce.y;
 
     // Limit the speed
     const length = Math.sqrt(this.velocity.x**2 + this.velocity.y**2);
@@ -61,60 +65,87 @@ export class BaseEnemy extends Entity {
   // They no longer have to search through all entities in the game.
 
   calculateSeparation(nearby) {
-    let steer = { x: 0, y: 0 };
-    for (const entity of nearby) {
-        if (entity instanceof BaseEnemy && entity !== this) {
-            const dx = this.position.x - entity.position.x;
-            const dy = this.position.y - entity.position.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < this.separationRadius) {
-                steer.x += dx / (distance || 1);
-                steer.y += dy / (distance || 1);
-            }
-        }
-    }
-    return steer;
+    const vecFuerza = { x: 0, y: 0 };
+
+    nearby.forEach((enemy) => {
+      // Separate from ALL enemy types, not just same type
+      if (enemy instanceof BaseEnemy && enemy !== this) {
+        const dx = this.position.x - enemy.position.x;
+        const dy = this.position.y - enemy.position.y;
+        let distancia = dx * dx + dy * dy;
+
+        // Prevent division by zero and ensure minimum separation
+        if (distancia < 1) distancia = 1;
+
+        const dif = {
+          x: dx / distancia,
+          y: dy / distancia
+        };
+        
+        vecFuerza.x += dif.x;
+        vecFuerza.y += dif.y;
+      }
+    });
+
+    return vecFuerza;
   }
 
   calculateAlignment(nearby) {
-    let steer = { x: 0, y: 0 };
-    let count = 0;
-    for (const entity of nearby) {
-      if (entity instanceof BaseEnemy && entity !== this) {
-        steer.x += entity.velocity.x;
-        steer.y += entity.velocity.y;
-        count++;
+    const vecPromedio = { x: 0, y: 0 };
+    let total = 0;
+
+    nearby.forEach((enemy) => {
+      if (enemy instanceof BaseEnemy && enemy !== this && enemy.enemyType === this.enemyType) {
+        vecPromedio.x += enemy.velocity.x;
+        vecPromedio.y += enemy.velocity.y;
+        total++;
       }
+    });
+
+    if (total > 0) {
+      vecPromedio.x /= total;
+      vecPromedio.y /= total;
     }
-    if (count > 0) {
-      steer.x /= count;
-      steer.y /= count;
-    }
-    return steer;
+
+    return vecPromedio;
   }
 
   calculateCohesion(nearby) {
-    let steer = { x: 0, y: 0 };
-    let count = 0;
-    for (const entity of nearby) {
-      if (entity instanceof BaseEnemy && entity !== this) {
-        steer.x += entity.position.x;
-        steer.y += entity.position.y;
-        count++;
+    const vecPromedio = { x: 0, y: 0 };
+    let total = 0;
+
+    nearby.forEach((enemy) => {
+      if (enemy instanceof BaseEnemy && enemy !== this && enemy.enemyType === this.enemyType) {
+        vecPromedio.x += enemy.position.x;
+        vecPromedio.y += enemy.position.y;
+        total++;
       }
+    });
+
+    if (total > 0) {
+      vecPromedio.x /= total;
+      vecPromedio.y /= total;
+
+      // Create a vector pointing towards the center of mass
+      vecPromedio.x = vecPromedio.x - this.position.x;
+      vecPromedio.y = vecPromedio.y - this.position.y;
     }
-    if (count > 0) {
-      steer.x /= count;
-      steer.y /= count;
-      steer.x -= this.position.x;
-      steer.y -= this.position.y;
-    }
-    return steer;
+
+    return vecPromedio;
   }
 
   calculatePlayerAttackForce() {
     const dx = this.player.position.x - this.position.x;
     const dy = this.player.position.y - this.position.y;
-    return { x: dx, y: dy };
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Normalize the direction to the player
+    if (distance > 0) {
+      return { 
+        x: (dx / distance) * 0.8, // Scale down to make separation more effective
+        y: (dy / distance) * 0.8 
+      };
+    }
+    return { x: 0, y: 0 };
   }
 }

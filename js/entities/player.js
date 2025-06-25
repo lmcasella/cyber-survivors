@@ -1,6 +1,6 @@
 // js/entity/Player.js
 
-import { Entity } from './Entity.js';
+import { Entity } from './entity.js';
 import { StateMachine } from '../state-machine/stateMachine.js';
 import { IdleState } from '../entities/states/playerStates.js';
 
