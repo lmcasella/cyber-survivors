@@ -1,4 +1,4 @@
-import { BaseEnemy } from './baseEnemy.js';
+import { BaseEnemy } from "./baseEnemy.js";
 
 export class FastEnemy extends BaseEnemy {
     constructor(gameManager, player) {
@@ -8,11 +8,12 @@ export class FastEnemy extends BaseEnemy {
         // --- Define properties specific to this enemy type ---
         this.speed = 3.5;
         this.health = 10;
+        this.damage = 15;
 
         // Customize boids behavior for fast enemies
-        this.separationWeight = 8.0;  // Less separation - they're more chaotic
-        this.alignmentWeight = 0.1;   // Less alignment - more individual movement
-        this.cohesionWeight = 0.01;   // Less cohesion - they spread out more
+        this.separationWeight = 8.0; // Less separation - they're more chaotic
+        this.alignmentWeight = 0.1; // Less alignment - more individual movement
+        this.cohesionWeight = 0.01; // Less cohesion - they spread out more
         this.playerAttackWeight = 1.5; // More aggressive - they rush the player
 
         // Create the visual sprite for this enemy
@@ -29,13 +30,13 @@ export class FastEnemy extends BaseEnemy {
         const dx = this.player.position.x - this.position.x;
         const dy = this.player.position.y - this.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance > 0) {
             // More aggressive approach, with slight randomness
             const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-            return { 
+            return {
                 x: (dx / distance) * 1.2 * randomFactor,
-                y: (dy / distance) * 1.2 * randomFactor
+                y: (dy / distance) * 1.2 * randomFactor,
             };
         }
         return { x: 0, y: 0 };

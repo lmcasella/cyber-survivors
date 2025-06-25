@@ -1,4 +1,4 @@
-import { BaseEnemy } from './baseEnemy.js';
+import { BaseEnemy } from "./baseEnemy.js";
 
 export class GruntEnemy extends BaseEnemy {
     constructor(gameManager, player) {
@@ -8,11 +8,12 @@ export class GruntEnemy extends BaseEnemy {
         // --- Define properties specific to this enemy type ---
         this.speed = 3;
         this.health = 20;
+        this.damage = 25;
 
         // Customize boids behavior for grunt enemies
         this.separationWeight = 15.0; // Stronger separation - they're bigger/bulkier
-        this.alignmentWeight = 0.3;   // More alignment - they move in formation
-        this.cohesionWeight = 0.05;   // More cohesion - they stick together
+        this.alignmentWeight = 0.3; // More alignment - they move in formation
+        this.cohesionWeight = 0.05; // More cohesion - they stick together
         this.playerAttackWeight = 1.5; // Less aggressive - they're more defensive
 
         // Create the visual sprite for this enemy
@@ -29,13 +30,13 @@ export class GruntEnemy extends BaseEnemy {
         const dx = this.player.position.x - this.position.x;
         const dy = this.player.position.y - this.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance > 0) {
             // Slower approach when close to player
             const approachMultiplier = distance > 50 ? 0.6 : 0.3;
-            return { 
+            return {
                 x: (dx / distance) * approachMultiplier,
-                y: (dy / distance) * approachMultiplier
+                y: (dy / distance) * approachMultiplier,
             };
         }
         return { x: 0, y: 0 };
