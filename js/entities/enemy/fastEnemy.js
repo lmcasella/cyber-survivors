@@ -19,9 +19,7 @@ export class FastEnemy extends BaseEnemy {
         // Create the visual sprite for this enemy
         this.sprite = new PIXI.Graphics().circle(0, 0, 8).fill(0x00ffff); // Cyan circle
 
-        // Spawn at a random position
-        this.position.x = Math.random() * this.game.app.screen.width;
-        this.position.y = Math.random() * this.game.app.screen.height;
+        // Position will be set by GameManager's spawnEnemiesAwayFromPlayer method
     }
 
     // Optional: Override specific behaviors for fast enemies

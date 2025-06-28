@@ -8,7 +8,7 @@ export class BaseEnemy extends Entity {
 
         this.speed = 2;
         this.health = 10;
-        this.damage = 0;
+        this.damage;
 
         this.attackCooldown = 1000;
         this.timeSinceLastAttack = this.attackCooldown;
@@ -27,6 +27,9 @@ export class BaseEnemy extends Entity {
     }
 
     update(ticker) {
+        // Update attack cooldown timer
+        this.timeSinceLastAttack += ticker.deltaMS;
+
         // Get the list of nearby entities ONCE using the spatial hash.
         const nearby = this.game.spatialHash.getNearby(this);
 
@@ -62,10 +65,13 @@ export class BaseEnemy extends Entity {
             this.velocity.y = (this.velocity.y / length) * this.speed;
         }
 
+        // Try to attack the player if in same cell
+        this.attackPlayerInCell();
+
         super.update(ticker);
     }
 
-    attackPlayerInCell(damage) {
+    attackPlayerInCell() {
         if (this.timeSinceLastAttack < this.attackCooldown) return;
 
         const enemyKey = this.game.spatialHash.getKey(
@@ -80,6 +86,9 @@ export class BaseEnemy extends Entity {
         if (enemyKey === playerKey) {
             this.player.takeDamage(this.damage);
             this.timeSinceLastAttack = 0;
+            console.log(
+                `${this.enemyType} attacked player for ${this.damage} damage!`
+            );
         }
     }
 
@@ -174,5 +183,19 @@ export class BaseEnemy extends Entity {
             };
         }
         return { x: 0, y: 0 };
+    }
+
+    takeDamage(amount) {
+        this.health -= amount;
+        console.log(`${this.enemyType} took ${amount} damage! Health: ${this.health}`);
+        
+        if (this.health <= 0) {
+            this.die();
+        }
+    }
+
+    die() {
+        console.log(`${this.enemyType} died!`);
+        this.game.removeEntity(this);
     }
 }
