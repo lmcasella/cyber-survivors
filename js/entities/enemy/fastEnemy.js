@@ -11,8 +11,8 @@ export class FastEnemy extends BaseEnemy {
         this.damage = 15;
 
         // Customize boids behavior for fast enemies
-        this.separationWeight = 8.0; // Less separation - they're more chaotic
-        this.alignmentWeight = 0.1; // Less alignment - more individual movement
+        this.separationWeight = 15.0; // Less separation - they're more chaotic
+        this.alignmentWeight = 0.3; // Less alignment - more individual movement
         this.cohesionWeight = 0.01; // Less cohesion - they spread out more
         this.playerAttackWeight = 1.5; // More aggressive - they rush the player
 

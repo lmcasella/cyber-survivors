@@ -8,14 +8,13 @@ import { SpatialHash } from "./core/spatialHash.js";
 
 export class GameManager {
     constructor() {
-        // Use the global PIXI object
         this.app = new PIXI.Application();
         this.input = new InputManager();
         this.entities = [];
 
         this.world = new PIXI.Container();
 
-        this.spatialHash = new SpatialHash(60);
+        this.spatialHash = new SpatialHash(55);
 
         this.gridGraphics = new PIXI.Graphics();
 
@@ -23,16 +22,16 @@ export class GameManager {
 
         this.gridGraphics.zIndex = 1000;
 
-        // Wave system
+        // Oleada
         this.currentWave = 1;
+        this.isSpawningNextWave = false;
         this.enemiesPerWave = {
-            grunt: 10,
-            fast: 5,
+            grunt: 0,
+            fast: 0,
         };
     }
 
     async init() {
-        // Use the global PIXI object
         await this.app.init({
             width: window.innerWidth,
             height: window.innerHeight,
@@ -46,7 +45,7 @@ export class GameManager {
         this.world.addChild(this.gridGraphics);
 
         const assets = await AssetLoader.loadAssets();
-        this.assets = assets; // Store assets for use in spawning
+        this.assets = assets;
 
         const player = new Player(this, assets.player);
         this.player = player;
@@ -73,7 +72,7 @@ export class GameManager {
             entity.update(ticker);
         }
 
-        // Check if wave is complete and spawn next wave
+        // Si no hay mas enemigos en la oleada, spawnea la siguiente
         this.checkWaveCompletion();
 
         this.drawDebugGrid();
@@ -86,7 +85,6 @@ export class GameManager {
     }
 
     drawDebugGrid() {
-        // Clear the previous grid
         this.gridGraphics.clear();
 
         const cellSize = this.spatialHash.cellSize;
@@ -122,74 +120,22 @@ export class GameManager {
         }
     }
 
-    /**
-     * Spawns enemies away from the player's current tile
-     * @param {number} count - Number of enemies to spawn
-     * @param {class} EnemyClass - The enemy class to instantiate (GruntEnemy, FastEnemy, etc.)
-     */
+    // Spawnea enemigos lejos del jugador y alrededor
     spawnEnemiesAwayFromPlayer(count, EnemyClass) {
-        const playerKey = this.spatialHash.getKey(
-            this.player.position.x,
-            this.player.position.y
-        );
-
-        // Extract player cell coordinates
-        const [playerCellX, playerCellY] = playerKey.split(",").map(Number);
-
-        // Minimum distance in cells from player
-        const minDistanceInCells = 10;
-        const cellSize = this.spatialHash.cellSize;
+        const minDistance = 10 * this.spatialHash.cellSize;
+        const maxDistance = 20 * this.spatialHash.cellSize;
 
         for (let i = 0; i < count; i++) {
-            let spawnX, spawnY;
-            let attempts = 0;
-            const maxAttempts = 50;
+            // Generate random angle and distance
+            const angle = Math.random() * Math.PI * 2;
+            const distance =
+                minDistance + Math.random() * (maxDistance - minDistance);
 
-            do {
-                // Generate random position
-                spawnX = Math.random() * this.app.screen.width;
-                spawnY = Math.random() * this.app.screen.height;
+            // Calculate spawn position in world coordinates
+            const spawnX = this.player.position.x + Math.cos(angle) * distance;
+            const spawnY = this.player.position.y + Math.sin(angle) * distance;
 
-                // Check if spawn position is far enough from player
-                const spawnCellX = Math.floor(spawnX / cellSize);
-                const spawnCellY = Math.floor(spawnY / cellSize);
-
-                const cellDistance = Math.sqrt(
-                    (spawnCellX - playerCellX) ** 2 +
-                        (spawnCellY - playerCellY) ** 2
-                );
-
-                if (cellDistance >= minDistanceInCells) {
-                    break; // Good spawn position found
-                }
-
-                attempts++;
-            } while (attempts < maxAttempts);
-
-            // If we couldn't find a good position, force spawn at edge of screen
-            if (attempts >= maxAttempts) {
-                const edge = Math.floor(Math.random() * 4);
-                switch (edge) {
-                    case 0: // Top
-                        spawnX = Math.random() * this.app.screen.width;
-                        spawnY = 0;
-                        break;
-                    case 1: // Right
-                        spawnX = this.app.screen.width;
-                        spawnY = Math.random() * this.app.screen.height;
-                        break;
-                    case 2: // Bottom
-                        spawnX = Math.random() * this.app.screen.width;
-                        spawnY = this.app.screen.height;
-                        break;
-                    case 3: // Left
-                        spawnX = 0;
-                        spawnY = Math.random() * this.app.screen.height;
-                        break;
-                }
-            }
-
-            // Create enemy and pass appropriate assets
+            // Create enemy
             const enemy = new EnemyClass(
                 this,
                 this.player,
@@ -200,53 +146,51 @@ export class GameManager {
 
             this.addEntity(enemy);
         }
+
+        console.log(`✅ Spawned ${count} ${EnemyClass.name}s around player`);
     }
 
-    /**
-     * Spawns a new wave of enemies
-     */
+    // Spawnea oleada
     spawnWave() {
         console.log(`🌊 Starting Wave ${this.currentWave}`);
 
-        // Calculate enemy counts for this wave (can scale with wave number)
-        const gruntCount =
-            this.enemiesPerWave.grunt + Math.floor(this.currentWave / 2);
-        const fastCount =
-            this.enemiesPerWave.fast + Math.floor(this.currentWave / 3);
+        const gruntCount = 5 + (this.currentWave - 1) * 3;
+        const fastCount = 2 + (this.currentWave - 1) * 2;
 
-        // Spawn the enemies
         this.spawnEnemiesAwayFromPlayer(gruntCount, GruntEnemy);
         this.spawnEnemiesAwayFromPlayer(fastCount, FastEnemy);
 
         console.log(
-            `Spawned ${gruntCount} Grunt Enemies and ${fastCount} Fast Enemies`
+            `Wave ${this.currentWave}: Spawned ${gruntCount} Grunts and ${fastCount} Fast enemies`
         );
     }
 
-    /**
-     * Checks if all enemies are defeated and spawns next wave
-     */
+    // Checkea si la oleada terminó y spawnea la siguiente
     checkWaveCompletion() {
-        // Count living enemies (exclude player)
+        // Cantidad de solo enemigos vivos
         const enemyCount = this.entities.filter(
             (entity) =>
                 entity instanceof GruntEnemy || entity instanceof FastEnemy
         ).length;
 
-        // If no enemies left, spawn next wave
-        if (enemyCount === 0) {
+        // Si no quedan enemigos y no estamos spawneando la siguiente oleada
+        if (enemyCount === 0 && !this.isSpawningNextWave) {
+            this.isSpawningNextWave = true;
             this.currentWave++;
 
-            // Optional: Add delay before next wave
+            console.log(
+                `🎉 Wave ${this.currentWave - 1} completed! Starting wave ${
+                    this.currentWave
+                } in 2 seconds...`
+            );
+
             setTimeout(() => {
                 this.spawnWave();
-            }, 2000); // 2 second delay
+                this.isSpawningNextWave = false;
+            }, 2000);
         }
     }
 
-    /**
-     * Removes an entity from the game (called when enemy dies)
-     */
     removeEntity(entity) {
         const index = this.entities.indexOf(entity);
         if (index > -1) {

@@ -1,50 +1,11 @@
 import { State } from "../../state-machine/state.js";
 
-export class IdleState extends State {
-    enter(enemy) {
-        if (enemy.sprite.currentAnimation.startsWith("walk")) {
-            enemy.playAnimation(
-                enemy.sprite.currentAnimation.replace("walk", "idle")
-            );
-        }
-    }
-
-    update(enemy) {
-        if (enemy.velocity.x !== 0 || enemy.velocity.y !== 0) {
-            enemy.stateMachine.setState(new WalkState());
-        }
-    }
-}
-
 export class WalkState extends State {
     updateEnemy(enemy, player) {
-        // If the enemy stops moving, transition to the IdleState
-        // if (enemy.velocity.x === 0 && enemy.velocity.y === 0) {
-        //     enemy.stateMachine.setState(new IdleState());
-        //     return; // Stop here to avoid updating animation on the same frame
-        // }
-
-        // Update the walking animation based on direction
-        // if (Math.abs(enemy.velocity.x) > Math.abs(enemy.velocity.y)) {
-        //     if (enemy.velocity.x > 0) enemy.playAnimation("walkRight");
-        //     else enemy.playAnimation("walkLeft");
-        // } else {
-        //     if (enemy.velocity.y > 0) enemy.playAnimation("walkDown");
-        //     else enemy.playAnimation("walkUp");
-        // }
-
-        // if (enemy.position.x > player.position.x) {
-        //     enemy.playAnimation("walkLeft");
-        // }
-        // if (enemy.position.x < player.position.x) {
-        //     enemy.playAnimation("walkRight");
-        // }
-        // if (enemy.position.y > player.position.y) {
-        //     enemy.playAnimation("walkUp");
-        // }
-        // if (enemy.position.y < player.position.y) {
-        //     enemy.playAnimation("walkDown");
-        // }
+        if (enemy.distanceToPlayer <= enemy.attackRange) {
+            enemy.stateMachine.setState(new AttackState());
+            return;
+        }
 
         // Calculate the direction from enemy to player
         const dx = player.position.x - enemy.position.x;
@@ -65,6 +26,63 @@ export class WalkState extends State {
             } else {
                 enemy.playAnimation("walkUp"); // Player is above
             }
+        }
+    }
+}
+
+export class AttackState extends State {
+    enter(enemy) {
+        if (enemy.sprite && enemy.sprite.tint !== undefined) {
+            enemy.sprite.tint = 0xff0000; // Red tint for attack
+        }
+    }
+
+    exit(enemy) {
+        if (enemy.sprite && enemy.sprite.tint !== undefined) {
+            enemy.sprite.tint = 0x00ced1; // Reset to normal color
+        }
+    }
+
+    updateEnemy(enemy, player, ticker) {
+        // Check if player moved out of attack range
+        this.attackDuration = 800; // 800ms attack duration
+        this.attackStarted = false;
+
+        if (enemy.distanceToPlayer > enemy.attackRange) {
+            enemy.stateMachine.setState(new WalkState());
+            return;
+        }
+
+        const dx = player.position.x - enemy.position.x;
+        const dy = player.position.y - enemy.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (!this.attackStarted) {
+            this.attackStarted = true;
+
+            // Play appropriate attack animation
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0) {
+                    enemy.playAnimation("attackRight");
+                } else {
+                    enemy.playAnimation("attackLeft");
+                }
+            } else {
+                if (dy > 0) {
+                    enemy.playAnimation("attackDown");
+                } else {
+                    enemy.playAnimation("attackUp");
+                }
+            }
+        }
+
+        enemy.attackPlayerInCell();
+
+        // Count down attack duration
+        this.attackDuration -= ticker.deltaMS;
+
+        if (this.attackDuration <= 0) {
+            enemy.stateMachine.setState(new WalkState());
         }
     }
 }

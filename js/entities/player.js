@@ -3,6 +3,7 @@
 import { Entity } from "./entity.js";
 import { StateMachine } from "../state-machine/stateMachine.js";
 import { IdleState } from "../entities/states/playerStates.js";
+import { Projectile } from "./projectile.js"; // Import the Projectile class
 
 export class Player extends Entity {
     constructor(gameManager, playerAssets) {
@@ -11,6 +12,11 @@ export class Player extends Entity {
         this.speed = 5;
         this.health = 100;
         this.isInvincible = false;
+
+        // Attack properties
+        this.attackCooldown = 600; // 300ms between shots
+        this.timeSinceLastAttack = 0;
+        this.projectileDamage = 25;
 
         // Use the loaded assets instead of the sheet parameter
         this.sprite = new PIXI.AnimatedSprite(
@@ -32,10 +38,14 @@ export class Player extends Entity {
     }
 
     update(ticker) {
+        // Add this line to increment the attack timer!
+        this.timeSinceLastAttack += ticker.deltaMS;
+
         // First, we determine the player's intended movement from input
         this.handleInput();
 
-        // this.updateAnimation();
+        // Handle mouse input for shooting
+        this.handleShooting();
 
         // Then, we let the state machine handle the logic (like changing animations)
         this.stateMachine.update(ticker);
@@ -75,6 +85,68 @@ export class Player extends Entity {
         this.velocity.y *= this.speed;
     }
 
+    handleShooting() {
+        const input = this.game.input;
+
+        // Check if mouse was clicked and attack is off cooldown
+        if (
+            input.wasMouseJustClicked() &&
+            this.timeSinceLastAttack >= this.attackCooldown
+        ) {
+            this.shoot();
+            this.timeSinceLastAttack = 0; // Reset cooldown
+        }
+    }
+
+    shoot() {
+        // Get mouse position in screen coordinates
+        const mousePos = this.game.input.getMousePosition();
+
+        // Convert screen coordinates to world coordinates
+        const worldMousePos = this.screenToWorldPosition(
+            mousePos.x,
+            mousePos.y
+        );
+
+        // Create projectile from player center to mouse position
+        const projectile = new Projectile(
+            this.game,
+            this.position.x, // Start X (player center)
+            this.position.y, // Start Y (player center)
+            worldMousePos.x, // Target X (mouse in world)
+            worldMousePos.y, // Target Y (mouse in world)
+            this.projectileDamage
+        );
+
+        // Add projectile to game
+        this.game.addEntity(projectile);
+
+        console.log(
+            `Player shot projectile toward (${worldMousePos.x.toFixed(
+                0
+            )}, ${worldMousePos.y.toFixed(0)})`
+        );
+    }
+
+    screenToWorldPosition(screenX, screenY) {
+        // Convert screen coordinates to world coordinates
+        // Account for camera position (world pivot/position)
+
+        // Screen center
+        const screenCenterX = this.game.app.screen.width / 2;
+        const screenCenterY = this.game.app.screen.height / 2;
+
+        // Mouse position relative to screen center
+        const relativeX = screenX - screenCenterX;
+        const relativeY = screenY - screenCenterY;
+
+        // World position = player position + relative mouse position
+        return {
+            x: this.position.x + relativeX,
+            y: this.position.y + relativeY,
+        };
+    }
+
     /**
      * Changes the sprite's animation texture array.
      * Prevents restarting the animation if it's already playing.
@@ -86,40 +158,6 @@ export class Player extends Entity {
             this.playerAssets.player.animations[animationName];
         this.sprite.currentAnimation = animationName;
         this.sprite.play();
-    }
-
-    /**
-     * Checks the player's velocity and calls playAnimation with the correct animation name.
-     */
-    updateAnimation() {
-        // // Check if the player is idle
-        // if (this.velocity.x === 0 && this.velocity.y === 0) {
-        //     // If we were walking, switch to the corresponding idle animation
-        //     if (this.sprite.currentAnimation.startsWith("walk")) {
-        //         this.playAnimation(
-        //             this.sprite.currentAnimation.replace("walk", "idle")
-        //         );
-        //     }
-        // }
-        // // The player is moving
-        // else {
-        //     // Is the horizontal movement stronger than the vertical movement?
-        //     if (Math.abs(this.velocity.x) > Math.abs(this.velocity.y)) {
-        //         if (this.velocity.x > 0) {
-        //             this.playAnimation("walkRight");
-        //         } else {
-        //             this.playAnimation("walkLeft");
-        //         }
-        //     }
-        //     // Vertical movement is stronger
-        //     else {
-        //         if (this.velocity.y > 0) {
-        //             this.playAnimation("walkDown");
-        //         } else {
-        //             this.playAnimation("walkUp");
-        //         }
-        //     }
-        // }
     }
 
     takeDamage(amount) {

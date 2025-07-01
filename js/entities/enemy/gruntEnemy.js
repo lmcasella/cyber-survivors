@@ -13,7 +13,7 @@ export class GruntEnemy extends BaseEnemy {
         // Customize boids behavior for grunt enemies
         this.separationWeight = 15.0; // Stronger separation - they're bigger/bulkier
         this.alignmentWeight = 0.3; // More alignment - they move in formation
-        this.cohesionWeight = 0.05; // More cohesion - they stick together
+        this.cohesionWeight = 0.01; // More cohesion - they stick together
         this.playerAttackWeight = 1.5; // Less aggressive - they're more defensive
 
         // this.customizeSprite();

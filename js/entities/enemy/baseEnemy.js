@@ -1,6 +1,7 @@
 import { Entity } from "../entity.js";
 import { SpatialHash } from "../../core/spatialHash.js";
 import { WalkState } from "../states/enemiesStates.js";
+import { AttackState } from "../states/enemiesStates.js";
 import { StateMachine } from "../../state-machine/stateMachine.js";
 
 export class BaseEnemy extends Entity {
@@ -28,76 +29,21 @@ export class BaseEnemy extends Entity {
         };
         this.sprite.position.copyFrom(this.position);
 
-        // Enemy states
-        // this.states = {
-        //     MOVING: 0,
-        //     ATTACKING: 1,
-        // };
-        // this.currentState = this.states.MOVING;
-
         this.attackRange = 50;
         this.distanceToPlayer = Infinity;
 
-        // Boids
-        this.neighborRadius = 1;
-        this.separationWeight = 10.0;
-        this.alignmentWeight = 0.2;
-        this.cohesionWeight = 0.02;
-        this.playerAttackWeight = 1.0;
+        // Boids variables
+        this.neighborRadius;
+        this.separationWeight;
+        this.alignmentWeight;
+        this.cohesionWeight;
+        this.playerAttackWeight;
 
         // Add enemy type for grouping behavior
         this.enemyType = this.constructor.name;
 
         this.stateMachine = new StateMachine(this, this.player);
         this.stateMachine.setState(new WalkState());
-
-        // this.initializeSprite();
-    }
-
-    // initializeSprite() {
-    //     try {
-    //         this.sprite = new PIXI.AnimatedSprite(
-    //             this.enemyAssets.enemies.demon.animations.idleDown
-    //         );
-    //         this.currentAnimation = "idleDown";
-    //         this.sprite.animationSpeed = 0.1;
-    //         this.sprite.play();
-
-    //         // Try to load the sprite from assets
-    //         // if (
-    //         //     this.enemyAssets &&
-    //         //     this.enemyAssets.demon &&
-    //         //     this.enemyAssets.demon.animations
-    //         // ) {
-    //         //     this.sprite = new PIXI.AnimatedSprite(
-    //         //         this.enemyAssets.demon.animations.idle
-    //         //     );
-    //         //     this.sprite.animationSpeed = 0.1;
-    //         //     this.sprite.play();
-    //         // } else {
-    //         //     // Fallback to basic graphics if assets fail
-    //         //     this.createFallbackSprite();
-    //         // }
-    //     } catch (error) {
-    //         console.warn(
-    //             `Failed to load sprite for ${this.enemyType}, using fallback:`,
-    //             error
-    //         );
-    //         this.createFallbackSprite();
-    //     }
-
-    //     // this.sprite.anchor.set(0.5);
-    //     this.sprite.x = this.position.x;
-    //     this.sprite.y = this.position.y;
-    // }
-
-    createFallbackSprite() {
-        // Create a simple colored circle as fallback
-        const graphics = new PIXI.Graphics();
-        graphics.circle(0, 0, 15);
-        graphics.fill(0xff0000); // Red circle for enemies
-
-        this.sprite = graphics;
     }
 
     update(ticker) {
@@ -161,64 +107,28 @@ export class BaseEnemy extends Entity {
         this.distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
     }
 
-    // updateState() {
-    //     const previousState = this.currentState;
-
-    //     if (this.distanceToPlayer <= this.attackRange) {
-    //         this.currentState = this.states.ATTACKING;
-    //     } else {
-    //         this.currentState = this.states.MOVING;
-    //     }
-
-    //     // Log state changes for debugging
-    //     if (previousState !== this.currentState) {
-    //         console.log(
-    //             `${this.enemyType} state changed to: ${
-    //                 this.currentState === this.states.ATTACKING
-    //                     ? "ATTACKING"
-    //                     : "MOVING"
-    //             }`
-    //         );
-    //     }
-    // }
-
     playAnimation(animationName) {
         if (this.sprite.currentAnimation === animationName) return;
 
-        this.sprite.textures = this.enemyAssets.demon.animations[animationName];
-        this.sprite.currentAnimation = animationName;
-        this.sprite.play();
-    }
-
-    updateAnimation() {
-        // if (!this.sprite || !this.sprite.textures) return; // Skip if no animated sprite
-        // try {
-        //     switch (this.currentState) {
-        //         case this.states.MOVING:
-        //             if (this.sprite.currentAnimation.startsWith("walk")) {
-        //                 // this.sprite.textures =
-        //                 //     this.enemyAssets.demon.animations.walk;
-        //                 // this.sprite.animationSpeed = 0.15;
-        //                 this.playAnimation(
-        //                     this.sprite.currentAnimation.replace("walk", "idle")
-        //                 );
-        //             }
-        //             break;
-        //         // case this.states.ATTACKING:
-        //         //     if (this.enemyAssets.demon.animations.attack) {
-        //         //         this.sprite.textures =
-        //         //             this.enemyAssets.demon.animations.attack;
-        //         //         this.sprite.animationSpeed = 0.2;
-        //         //     }
-        //         //     break;
-        //     }
-        // } catch (error) {
-        //     // Ignore animation errors and continue with current animation
-        // }
+        try {
+            if (this.enemyAssets.demon.animations[animationName]) {
+                this.sprite.textures =
+                    this.enemyAssets.demon.animations[animationName];
+                this.sprite.currentAnimation = animationName;
+                this.sprite.play();
+            }
+        } catch (error) {
+            // Ignore animation errors
+        }
+        // this.sprite.textures = this.enemyAssets.demon.animations[animationName];
+        // this.sprite.currentAnimation = animationName;
+        // this.sprite.play();
     }
 
     attackPlayerInCell() {
-        if (this.timeSinceLastAttack < this.attackCooldown) return;
+        console.log("BaseEnemy attackPlayerInCell called");
+
+        if (this.timeSinceLastAttack < this.attackCooldown) return false;
 
         const enemyKey = this.game.spatialHash.getKey(
             this.position.x,
@@ -235,7 +145,9 @@ export class BaseEnemy extends Entity {
             console.log(
                 `${this.enemyType} attacked player for ${this.damage} damage!`
             );
+            return true;
         }
+        return false;
     }
 
     calculateSeparation(nearby) {
@@ -317,8 +229,8 @@ export class BaseEnemy extends Entity {
     }
 
     calculatePlayerAttackForce() {
-        const dx = this.player.position.x - this.position.x;
-        const dy = this.player.position.y - this.position.y;
+        const dx = this.player.position.x - this.sprite.position.x;
+        const dy = this.player.position.y - this.sprite.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Normalize the direction to the player
@@ -328,19 +240,6 @@ export class BaseEnemy extends Entity {
                 y: (dy / distance) * 0.8,
             };
         }
-        // // cambiar animacion dependiendo a donde se mueve el enemigo en base al player
-        // if (this.position.x > this.player.position.x) {
-        //     this.playAnimation("walkLeft");
-        // }
-        // if (this.position.x < this.player.position.x) {
-        //     this.playAnimation("walkRight");
-        // }
-        // if (this.position.y > this.player.position.y) {
-        //     this.playAnimation("walkUp");
-        // }
-        // if (this.position.y < this.player.position.y) {
-        //     this.playAnimation("walkDown");
-        // }
 
         return { x: 0, y: 0 };
     }
