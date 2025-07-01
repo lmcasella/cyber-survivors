@@ -5,14 +5,17 @@ import { StateMachine } from "../state-machine/stateMachine.js";
 import { IdleState } from "../entities/states/playerStates.js";
 
 export class Player extends Entity {
-    constructor(gameManager, sheet) {
+    constructor(gameManager, playerAssets) {
         super(gameManager);
-        this.sheet = sheet;
+        this.playerAssets = playerAssets;
         this.speed = 5;
         this.health = 100;
         this.isInvincible = false;
 
-        this.sprite = new PIXI.AnimatedSprite(this.sheet.animations.idleDown);
+        // Use the loaded assets instead of the sheet parameter
+        this.sprite = new PIXI.AnimatedSprite(
+            this.playerAssets.player.animations.idleDown
+        );
         this.sprite.animationSpeed = 0.28;
         this.sprite.anchor.set(0.5, 0.5);
         this.sprite.currentAnimation = "idleDown";
@@ -79,7 +82,8 @@ export class Player extends Entity {
     playAnimation(animationName) {
         if (this.sprite.currentAnimation === animationName) return;
 
-        this.sprite.textures = this.sheet.animations[animationName];
+        this.sprite.textures =
+            this.playerAssets.player.animations[animationName];
         this.sprite.currentAnimation = animationName;
         this.sprite.play();
     }
@@ -88,34 +92,34 @@ export class Player extends Entity {
      * Checks the player's velocity and calls playAnimation with the correct animation name.
      */
     updateAnimation() {
-        // Check if the player is idle
-        if (this.velocity.x === 0 && this.velocity.y === 0) {
-            // If we were walking, switch to the corresponding idle animation
-            if (this.sprite.currentAnimation.startsWith("walk")) {
-                this.playAnimation(
-                    this.sprite.currentAnimation.replace("walk", "idle")
-                );
-            }
-        }
-        // The player is moving
-        else {
-            // Is the horizontal movement stronger than the vertical movement?
-            if (Math.abs(this.velocity.x) > Math.abs(this.velocity.y)) {
-                if (this.velocity.x > 0) {
-                    this.playAnimation("walkRight");
-                } else {
-                    this.playAnimation("walkLeft");
-                }
-            }
-            // Vertical movement is stronger
-            else {
-                if (this.velocity.y > 0) {
-                    this.playAnimation("walkDown");
-                } else {
-                    this.playAnimation("walkUp");
-                }
-            }
-        }
+        // // Check if the player is idle
+        // if (this.velocity.x === 0 && this.velocity.y === 0) {
+        //     // If we were walking, switch to the corresponding idle animation
+        //     if (this.sprite.currentAnimation.startsWith("walk")) {
+        //         this.playAnimation(
+        //             this.sprite.currentAnimation.replace("walk", "idle")
+        //         );
+        //     }
+        // }
+        // // The player is moving
+        // else {
+        //     // Is the horizontal movement stronger than the vertical movement?
+        //     if (Math.abs(this.velocity.x) > Math.abs(this.velocity.y)) {
+        //         if (this.velocity.x > 0) {
+        //             this.playAnimation("walkRight");
+        //         } else {
+        //             this.playAnimation("walkLeft");
+        //         }
+        //     }
+        //     // Vertical movement is stronger
+        //     else {
+        //         if (this.velocity.y > 0) {
+        //             this.playAnimation("walkDown");
+        //         } else {
+        //             this.playAnimation("walkUp");
+        //         }
+        //     }
+        // }
     }
 
     takeDamage(amount) {

@@ -46,7 +46,9 @@ export class GameManager {
         this.world.addChild(this.gridGraphics);
 
         const assets = await AssetLoader.loadAssets();
-        const player = new Player(this, assets);
+        this.assets = assets; // Store assets for use in spawning
+
+        const player = new Player(this, assets.player);
         this.player = player;
         this.addEntity(player);
 
@@ -187,8 +189,12 @@ export class GameManager {
                 }
             }
 
-            // Create enemy and set position
-            const enemy = new EnemyClass(this, this.player);
+            // Create enemy and pass appropriate assets
+            const enemy = new EnemyClass(
+                this,
+                this.player,
+                this.assets.enemies
+            );
             enemy.position.x = spawnX;
             enemy.position.y = spawnY;
 

@@ -1,9 +1,9 @@
 import { BaseEnemy } from "./baseEnemy.js";
 
 export class GruntEnemy extends BaseEnemy {
-    constructor(gameManager, player) {
+    constructor(gameManager, player, enemyAssets) {
         // Call the constructor of the BaseEnemy class
-        super(gameManager, player);
+        super(gameManager, player, enemyAssets);
 
         // --- Define properties specific to this enemy type ---
         this.speed = 3;
@@ -16,27 +16,48 @@ export class GruntEnemy extends BaseEnemy {
         this.cohesionWeight = 0.05; // More cohesion - they stick together
         this.playerAttackWeight = 1.5; // Less aggressive - they're more defensive
 
-        // Create the visual sprite for this enemy
-        this.sprite = new PIXI.Graphics().circle(0, 0, 12).fill(0xff0000); // Red circle
-
-        // Position will be set by GameManager's spawnEnemiesAwayFromPlayer method
+        // this.customizeSprite();
     }
 
-    // Optional: Override specific behaviors for grunt enemies
-    calculatePlayerAttackForce() {
-        // Grunts are more defensive - they approach more cautiously
-        const dx = this.player.position.x - this.position.x;
-        const dy = this.player.position.y - this.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    customizeSprite() {
+        if (this.sprite) {
+            // Only set tint if it's an animated sprite or graphics
+            if (this.sprite.tint !== undefined) {
+                this.sprite.tint = 0x8b0000; // Dark red for grunts
+            }
 
-        if (distance > 0) {
-            // Slower approach when close to player
-            const approachMultiplier = distance > 50 ? 0.6 : 0.3;
-            return {
-                x: (dx / distance) * approachMultiplier,
-                y: (dy / distance) * approachMultiplier,
-            };
+            // Scale up for grunt enemy
+            if (this.sprite.scale) {
+                this.sprite.scale.set(1.2); // Bigger
+            }
+
+            // If it's a Graphics fallback, change the color and size
+            if (this.sprite instanceof PIXI.Graphics) {
+                this.sprite.clear();
+                this.sprite.circle(0, 0, 18); // Bigger circle
+                this.sprite.fill(0x8b0000); // Dark red color
+            }
         }
-        return { x: 0, y: 0 };
+    }
+
+    attackPlayerInCell() {
+        if (this.timeSinceLastAttack < this.attackCooldown) return;
+
+        const enemyKey = this.game.spatialHash.getKey(
+            this.position.x,
+            this.position.y
+        );
+        const playerKey = this.game.spatialHash.getKey(
+            this.player.position.x,
+            this.player.position.y
+        );
+
+        if (enemyKey === playerKey) {
+            this.player.takeDamage(this.damage);
+            this.timeSinceLastAttack = 0;
+            console.log(
+                `💪 ${this.enemyType} CRUSHED player for ${this.damage} damage!`
+            );
+        }
     }
 }
