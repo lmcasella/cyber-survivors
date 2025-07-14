@@ -1,8 +1,8 @@
 export class StateMachine {
     constructor(owner, player = null) {
-        this.owner = owner; // The entity that owns this state machine (e.g., the Player)
+        this.owner = owner;
         this.currentState = null;
-        this.player = player; // Optional player reference for enemy states
+        this.player = player; // Opcional
     }
 
     setState(newState) {

@@ -2,29 +2,30 @@ import { State } from "../../state-machine/state.js";
 
 export class WalkState extends State {
     updateEnemy(enemy, player) {
+        // Checkea si el enemigo está en rango de ataque
         if (enemy.distanceToPlayer <= enemy.attackRange) {
             enemy.stateMachine.setState(new AttackState());
             return;
         }
 
-        // Calculate the direction from enemy to player
+        // Calcula la distancia hacia jugador
         const dx = player.position.x - enemy.position.x;
         const dy = player.position.y - enemy.position.y;
 
-        // Determine which direction is stronger (horizontal vs vertical movement)
+        // Manejo de direccion de movimiento
         if (Math.abs(dx) > Math.abs(dy)) {
-            // Horizontal movement is stronger
+            // Movimiento horizontal
             if (dx > 0) {
-                enemy.playAnimation("walkRight"); // Player is to the right
+                enemy.playAnimation("walkRight");
             } else {
-                enemy.playAnimation("walkLeft"); // Player is to the left
+                enemy.playAnimation("walkLeft");
             }
         } else {
-            // Vertical movement is stronger
+            // Movimiento vertical
             if (dy > 0) {
-                enemy.playAnimation("walkDown"); // Player is below
+                enemy.playAnimation("walkDown");
             } else {
-                enemy.playAnimation("walkUp"); // Player is above
+                enemy.playAnimation("walkUp");
             }
         }
     }
@@ -33,21 +34,20 @@ export class WalkState extends State {
 export class AttackState extends State {
     enter(enemy) {
         if (enemy.sprite && enemy.sprite.tint !== undefined) {
-            enemy.sprite.tint = 0xff0000; // Red tint for attack
+            // enemy.sprite.tint = 0xff0000;
         }
     }
 
     exit(enemy) {
         if (enemy.sprite && enemy.sprite.tint !== undefined) {
-            enemy.sprite.tint = 0x00ced1; // Reset to normal color
         }
     }
 
     updateEnemy(enemy, player, ticker) {
-        // Check if player moved out of attack range
-        this.attackDuration = 800; // 800ms attack duration
+        this.attackDuration = 800; // FIXME: Revisar si es necesario
         this.attackStarted = false;
 
+        // Checkea si el enemigo está fuera de rango de ataque
         if (enemy.distanceToPlayer > enemy.attackRange) {
             enemy.stateMachine.setState(new WalkState());
             return;
@@ -60,7 +60,7 @@ export class AttackState extends State {
         if (!this.attackStarted) {
             this.attackStarted = true;
 
-            // Play appropriate attack animation
+            // Ejecuta la animacion dependiendo de la direccion
             if (Math.abs(dx) > Math.abs(dy)) {
                 if (dx > 0) {
                     enemy.playAnimation("attackRight");

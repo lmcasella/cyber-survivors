@@ -1,10 +1,19 @@
 // No longer importing Application from 'pixi.js'
+import * as PIXI from "https://cdn.skypack.dev/pixi.js@8.0.0";
 import { AssetLoader } from "./assetLoader.js";
 import { Player } from "./entities/player.js";
 import { GruntEnemy } from "./entities/enemy/gruntEnemy.js";
 import { FastEnemy } from "./entities/enemy/fastEnemy.js";
+import { BossEnemy } from "./entities/enemy/bossEnemy.js";
 import { InputManager } from "./inputManager.js";
 import { SpatialHash } from "./core/spatialHash.js";
+import { PowerUpFactory } from "./powerups/powerUpFactory.js";
+import { PowerUpSpawner } from "./powerups/powerUpSpawner.js";
+import { GAME_CONFIG } from "./core/gameConstants.js";
+import { BaseEnemy } from "./entities/enemy/baseEnemy.js";
+
+// import { TilingSprite } from "./pixi.js";
+// import * as PIXI from "./pixi.js";
 
 export class GameManager {
     constructor() {
@@ -22,13 +31,45 @@ export class GameManager {
 
         this.gridGraphics.zIndex = 1000;
 
-        // Oleada
+        // Game state
+        this.gameState = "playing"; // 'playing', 'paused', 'gameOver'
         this.currentWave = 1;
         this.isSpawningNextWave = false;
-        this.enemiesPerWave = {
-            grunt: 0,
-            fast: 0,
+
+        // PowerUp system
+        this.powerUpSpawner = new PowerUpSpawner(this);
+
+        // Game stats
+        this.gameStats = {
+            startTime: Date.now(),
+            waveStartTime: Date.now(),
+            totalEnemiesSpawned: 0,
+            totalEnemiesKilled: 0,
         };
+
+        // // Oleada
+        // this.currentWave = 1;
+        // this.isSpawningNextWave = false;
+        // this.enemiesPerWave = {
+        //     grunt: 0,
+        //     fast: 0,
+        // };
+
+        // this.powerUpSpawnTimer = 0;
+        // this.powerUpSpawnInterval = GAME_CONFIG.POWERUPS.SPAWN_INTERVAL;
+        // this.maxPowerUpsOnScreen = GAME_CONFIG.POWERUPS.MAX_ON_SCREEN;
+    }
+
+    async createBackground(app) {
+        const texture = await PIXI.Assets.get("assets/images/bg.png");
+
+        const background = new PIXI.TilingSprite({
+            texture,
+            width: app.screen.width * 4,
+            height: app.screen.height * 4,
+        });
+
+        this.world.addChild(background);
     }
 
     async init() {
@@ -37,6 +78,11 @@ export class GameManager {
             height: window.innerHeight,
             backgroundColor: 0x1a1a1a,
         });
+
+        await PIXI.Assets.load(["assets/images/bg.png"]);
+
+        this.background = await this.createBackground(this.app);
+
         document.body.appendChild(this.app.canvas);
         this.input.init();
 
@@ -63,25 +109,268 @@ export class GameManager {
     }
 
     update(ticker) {
+        if (this.gameState !== "playing") return;
+
+        // Update spatial hash
         this.spatialHash.clear();
         for (const entity of this.entities) {
             this.spatialHash.add(entity);
         }
 
+        // Update all entities
         for (const entity of this.entities) {
             entity.update(ticker);
         }
 
-        // Si no hay mas enemigos en la oleada, spawnea la siguiente
+        // Update systems
+        this.powerUpSpawner.update(ticker);
         this.checkWaveCompletion();
 
-        this.drawDebugGrid();
+        // Update camera
+        this.updateCamera();
 
+        // Draw debug information
+        if (GAME_CONFIG.DEBUG.SHOW_GRID) {
+            // this.drawDebugGrid();
+        }
+    }
+
+    updateCamera() {
+        // Center camera on player
         this.world.pivot.copyFrom(this.player.position);
         this.world.position.set(
             this.app.screen.width / 2,
             this.app.screen.height / 2
         );
+    }
+
+    addEntity(entity) {
+        this.entities.push(entity);
+        this.world.addChild(entity.sprite);
+    }
+
+    removeEntity(entity) {
+        const index = this.entities.indexOf(entity);
+        if (index > -1) {
+            this.entities.splice(index, 1);
+            if (entity.sprite && entity.sprite.parent) {
+                this.world.removeChild(entity.sprite);
+            }
+        }
+    }
+
+    spawnWave() {
+        console.log(`🌊 Starting Wave ${this.currentWave}`);
+        this.gameStats.waveStartTime = Date.now();
+
+        // Check if this is a boss wave
+        const isBossWave = GAME_CONFIG.WAVES.BOSS_WAVES.includes(
+            this.currentWave
+        );
+
+        if (isBossWave) {
+            // Boss wave - spawn only the boss
+            console.log(
+                `👹 BOSS WAVE ${this.currentWave}! Preparing boss encounter...`
+            );
+
+            this.spawnBoss();
+
+            // Update stats (count boss as 1 enemy)
+            this.gameStats.totalEnemiesSpawned += 1;
+        } else {
+            // Regular wave - spawn normal enemies
+            const baseGrunts = GAME_CONFIG.ENEMIES.GRUNT_BASE_COUNT;
+            const baseFast = GAME_CONFIG.ENEMIES.FAST_BASE_COUNT;
+            const gruntMultiplier = GAME_CONFIG.ENEMIES.GRUNT_WAVE_MULTIPLIER;
+            const fastMultiplier = GAME_CONFIG.ENEMIES.FAST_WAVE_MULTIPLIER;
+
+            const gruntCount =
+                baseGrunts + (this.currentWave - 1) * gruntMultiplier;
+            const fastCount = Math.floor(
+                baseFast + (this.currentWave - 1) * fastMultiplier
+            );
+
+            // Spawn regular enemies
+            this.spawnEnemiesAwayFromPlayer(gruntCount, GruntEnemy);
+            this.spawnEnemiesAwayFromPlayer(fastCount, FastEnemy);
+
+            // Update stats
+            this.gameStats.totalEnemiesSpawned += gruntCount + fastCount;
+
+            console.log(
+                `📊 Wave ${
+                    this.currentWave
+                }: ${gruntCount} Grunts + ${fastCount} Fast = ${
+                    gruntCount + fastCount
+                } total enemies`
+            );
+        }
+
+        // Handle other special wave events (if any)
+        this.handleSpecialWaveEvents();
+    }
+
+    spawnBoss() {
+        console.log(`🦹 Spawning Boss for Wave ${this.currentWave}!`);
+
+        // Spawn boss at a specific distance from player
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 400; // Fixed distance for dramatic entrance
+
+        const spawnX = this.player.position.x + Math.cos(angle) * distance;
+        const spawnY = this.player.position.y + Math.sin(angle) * distance;
+
+        // Create boss enemy
+        // const boss = new BossEnemy(this, this.player, this.assets.enemies);
+
+        this.spawnEnemiesAwayFromPlayer(1, BossEnemy);
+
+        // boss.position.x = spawnX;
+        // boss.position.y = spawnY;
+
+        // Scale boss for wave (make it extra strong)
+        // this.scaleBossForWave(boss);
+
+        // this.addEntity(boss);
+
+        console.log(
+            `👑 Boss spawned at (${spawnX.toFixed(0)}, ${spawnY.toFixed(0)})`
+        );
+    }
+
+    scaleBossForWave(boss) {
+        const wave = this.currentWave;
+
+        // Boss gets stronger scaling than regular enemies
+        const bossHealthMultiplier =
+            GAME_CONFIG.ENEMIES.HEALTH_SCALE_PER_WAVE * 1.5; // 50% more health scaling
+        const bossDamageMultiplier =
+            GAME_CONFIG.ENEMIES.DAMAGE_SCALE_PER_WAVE * 1.3; // 30% more damage scaling
+        const bossSpeedMultiplier =
+            GAME_CONFIG.ENEMIES.SPEED_SCALE_PER_WAVE * 1.1; // 10% more speed scaling
+
+        boss.health = Math.floor(
+            boss.health * Math.pow(bossHealthMultiplier, wave - 1)
+        );
+        boss.damage = Math.floor(
+            boss.damage * Math.pow(bossDamageMultiplier, wave - 1)
+        );
+        boss.speed = boss.speed * Math.pow(bossSpeedMultiplier, wave - 1);
+
+        console.log(
+            `💪 Boss scaled for Wave ${wave}: Health=${boss.health}, Damage=${
+                boss.damage
+            }, Speed=${boss.speed.toFixed(1)}`
+        );
+    }
+
+    handleSpecialWaveEvents() {
+        // Powerup waves - guaranteed powerup
+        if (GAME_CONFIG.WAVES.POWERUP_WAVES.includes(this.currentWave)) {
+            console.log(
+                `🎁 POWERUP WAVE ${this.currentWave}! Bonus items incoming!`
+            );
+            setTimeout(() => {
+                this.powerUpSpawner.spawnSpecificPowerUp("health");
+                this.powerUpSpawner.spawnSpecificPowerUp("speed");
+            }, 2000);
+        }
+    }
+
+    spawnEnemiesAwayFromPlayer(count, EnemyClass) {
+        const minDistance =
+            GAME_CONFIG.ENEMIES.SPAWN_DISTANCE_MIN * this.spatialHash.cellSize;
+        const maxDistance =
+            GAME_CONFIG.ENEMIES.SPAWN_DISTANCE_MAX * this.spatialHash.cellSize;
+
+        for (let i = 0; i < count; i++) {
+            // Random spawn position around player
+            const angle = Math.random() * Math.PI * 2;
+            const distance =
+                minDistance + Math.random() * (maxDistance - minDistance);
+
+            const spawnX = this.player.position.x + Math.cos(angle) * distance;
+            const spawnY = this.player.position.y + Math.sin(angle) * distance;
+
+            // Create enemy with wave scaling
+            const enemy = new EnemyClass(
+                this,
+                this.player,
+                this.assets.enemies
+            );
+            enemy.position.x = spawnX;
+            enemy.position.y = spawnY;
+
+            // Scale enemy stats based on wave
+            this.scaleEnemyForWave(enemy);
+
+            this.addEntity(enemy);
+        }
+
+        if (GAME_CONFIG.DEBUG.LOG_SPAWNS) {
+            console.log(
+                `✅ Spawned ${count} ${EnemyClass.name}s around player`
+            );
+        }
+    }
+
+    scaleEnemyForWave(enemy) {
+        const wave = this.currentWave;
+
+        // Scale health, damage, and speed based on wave
+        enemy.health = Math.floor(
+            enemy.health *
+                Math.pow(GAME_CONFIG.ENEMIES.HEALTH_SCALE_PER_WAVE, wave - 1)
+        );
+        enemy.damage = Math.floor(
+            enemy.damage *
+                Math.pow(GAME_CONFIG.ENEMIES.DAMAGE_SCALE_PER_WAVE, wave - 1)
+        );
+        enemy.speed =
+            enemy.speed *
+            Math.pow(GAME_CONFIG.ENEMIES.SPEED_SCALE_PER_WAVE, wave - 1);
+    }
+
+    checkWaveCompletion() {
+        // Count living enemies
+        const enemyCount = this.entities.filter(
+            (entity) =>
+                // entity instanceof BossEnemy ||
+                // entity instanceof GruntEnemy ||
+                // entity instanceof FastEnemy
+                entity instanceof BaseEnemy
+        ).length;
+
+        // If no enemies left and not already spawning next wave
+        if (enemyCount === 0 && !this.isSpawningNextWave) {
+            this.completeWave();
+        }
+    }
+
+    completeWave() {
+        this.isSpawningNextWave = true;
+
+        const waveTime = Date.now() - this.gameStats.waveStartTime;
+        console.log(
+            `🎉 Wave ${this.currentWave} completed in ${(
+                waveTime / 1000
+            ).toFixed(1)}s!`
+        );
+
+        this.currentWave++;
+
+        // Check for game victory
+        if (this.currentWave > GAME_CONFIG.WAVES.VICTORY_WAVE) {
+            this.gameVictory();
+            return;
+        }
+
+        // Delay before next wave
+        setTimeout(() => {
+            this.spawnWave();
+            this.isSpawningNextWave = false;
+        }, GAME_CONFIG.WAVES.COMPLETION_DELAY);
     }
 
     drawDebugGrid() {
@@ -91,111 +380,98 @@ export class GameManager {
         const screenWidth = this.app.screen.width;
         const screenHeight = this.app.screen.height;
 
-        // Get the top-left corner of the screen in world coordinates
         const viewLeft = this.player.position.x - screenWidth / 2;
         const viewTop = this.player.position.y - screenHeight / 2;
 
-        // Calculate the starting points for drawing lines, snapped to the grid
         const startX = Math.floor(viewLeft / cellSize) * cellSize;
         const startY = Math.floor(viewTop / cellSize) * cellSize;
-
-        // Calculate where the lines should end
         const endX = startX + screenWidth + cellSize;
         const endY = startY + screenHeight + cellSize;
 
-        // Set the line style (color, width, transparency)
-        // A dark grey with low transparency works well
-        this.gridGraphics.stroke({ color: 0x00ff00, width: 1, alpha: 1.0 });
+        this.gridGraphics.stroke({
+            color: GAME_CONFIG.GRAPHICS.GRID_COLOR,
+            width: 1,
+            alpha: GAME_CONFIG.GRAPHICS.GRID_ALPHA,
+        });
 
-        // Draw vertical lines
+        // Draw grid lines
         for (let x = startX; x <= endX; x += cellSize) {
             this.gridGraphics.moveTo(x, startY);
             this.gridGraphics.lineTo(x, endY);
         }
 
-        // Draw horizontal lines
         for (let y = startY; y <= endY; y += cellSize) {
             this.gridGraphics.moveTo(startX, y);
             this.gridGraphics.lineTo(endX, y);
         }
     }
 
-    // Spawnea enemigos lejos del jugador y alrededor
-    spawnEnemiesAwayFromPlayer(count, EnemyClass) {
-        const minDistance = 10 * this.spatialHash.cellSize;
-        const maxDistance = 20 * this.spatialHash.cellSize;
+    gameOver() {
+        this.gameState = "gameOver";
+        this.app.ticker.stop();
 
-        for (let i = 0; i < count; i++) {
-            // Generate random angle and distance
-            const angle = Math.random() * Math.PI * 2;
-            const distance =
-                minDistance + Math.random() * (maxDistance - minDistance);
+        const totalTime = Date.now() - this.gameStats.startTime;
 
-            // Calculate spawn position in world coordinates
-            const spawnX = this.player.position.x + Math.cos(angle) * distance;
-            const spawnY = this.player.position.y + Math.sin(angle) * distance;
-
-            // Create enemy
-            const enemy = new EnemyClass(
-                this,
-                this.player,
-                this.assets.enemies
-            );
-            enemy.position.x = spawnX;
-            enemy.position.y = spawnY;
-
-            this.addEntity(enemy);
-        }
-
-        console.log(`✅ Spawned ${count} ${EnemyClass.name}s around player`);
-    }
-
-    // Spawnea oleada
-    spawnWave() {
-        console.log(`🌊 Starting Wave ${this.currentWave}`);
-
-        const gruntCount = 5 + (this.currentWave - 1) * 3;
-        const fastCount = 2 + (this.currentWave - 1) * 2;
-
-        this.spawnEnemiesAwayFromPlayer(gruntCount, GruntEnemy);
-        this.spawnEnemiesAwayFromPlayer(fastCount, FastEnemy);
-
+        console.log("💀 GAME OVER!");
+        console.log(`📊 Final Stats:`);
+        console.log(`   Wave reached: ${this.currentWave}`);
         console.log(
-            `Wave ${this.currentWave}: Spawned ${gruntCount} Grunts and ${fastCount} Fast enemies`
+            `   Time played: ${(totalTime / 1000 / 60).toFixed(1)} minutes`
         );
+        console.log(
+            `   Enemies spawned: ${this.gameStats.totalEnemiesSpawned}`
+        );
+        console.log(`   Enemies killed: ${this.gameStats.totalEnemiesKilled}`);
+        console.log(`   Player stats:`, this.player.getStats());
     }
 
-    // Checkea si la oleada terminó y spawnea la siguiente
-    checkWaveCompletion() {
-        // Cantidad de solo enemigos vivos
-        const enemyCount = this.entities.filter(
-            (entity) =>
-                entity instanceof GruntEnemy || entity instanceof FastEnemy
-        ).length;
+    gameVictory() {
+        this.gameState = "victory";
 
-        // Si no quedan enemigos y no estamos spawneando la siguiente oleada
-        if (enemyCount === 0 && !this.isSpawningNextWave) {
-            this.isSpawningNextWave = true;
-            this.currentWave++;
+        const totalTime = Date.now() - this.gameStats.startTime;
 
-            console.log(
-                `🎉 Wave ${this.currentWave - 1} completed! Starting wave ${
-                    this.currentWave
-                } in 2 seconds...`
-            );
+        console.log("🎊 VICTORY! You completed all waves!");
+        console.log(
+            `🏆 Final completion time: ${(totalTime / 1000 / 60).toFixed(
+                1
+            )} minutes`
+        );
+        console.log(`📊 Final stats:`, this.player.getStats());
 
-            setTimeout(() => {
-                this.spawnWave();
-                this.isSpawningNextWave = false;
-            }, 2000);
-        }
+        // Could show victory screen here
     }
 
-    removeEntity(entity) {
-        const index = this.entities.indexOf(entity);
-        if (index > -1) {
-            this.entities.splice(index, 1);
-            this.world.removeChild(entity.sprite);
-        }
+    pauseGame() {
+        this.gameState = "paused";
+        console.log("⏸️ Game paused");
+    }
+
+    resumeGame() {
+        this.gameState = "playing";
+        console.log("▶️ Game resumed");
+    }
+
+    // Utility methods
+    getWaveInfo() {
+        return {
+            current: this.currentWave,
+            enemiesAlive: this.entities.filter(
+                (e) =>
+                    // e instanceof BossEnemy ||
+                    // e instanceof GruntEnemy ||
+                    // e instanceof FastEnemy
+                    e instanceof BaseEnemy
+            ).length,
+            isSpawning: this.isSpawningNextWave,
+        };
+    }
+
+    getGameStats() {
+        return {
+            ...this.gameStats,
+            currentWave: this.currentWave,
+            gameTime: Date.now() - this.gameStats.startTime,
+            playerStats: this.player.getStats(),
+        };
     }
 }

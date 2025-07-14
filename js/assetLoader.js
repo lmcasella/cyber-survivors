@@ -11,6 +11,8 @@ export class AssetLoader {
 
         PIXI.Assets.addBundle("enemies", {
             demon: "assets/images/enemies/demon/texture.json",
+            skeleton: "assets/images/enemies/skeleton/texture.json",
+            boss: "assets/images/enemies/boss/texture.json",
             // zombie: "assets/images/enemies/zombie/texture.json",
             // goblin: "assets/images/enemies/goblin/texture.json",
         });

@@ -4,21 +4,45 @@ import { Entity } from "./entity.js";
 import { StateMachine } from "../state-machine/stateMachine.js";
 import { IdleState } from "../entities/states/playerStates.js";
 import { Projectile } from "./projectile.js"; // Import the Projectile class
+import { PistolWeapon } from "../weapons/pistolWeapon.js";
+import { WeaponManager } from "../weapons/weaponManager.js";
+import { GAME_CONFIG } from "../core/gameConstants.js";
 
 export class Player extends Entity {
     constructor(gameManager, playerAssets) {
         super(gameManager);
         this.playerAssets = playerAssets;
-        this.speed = 5;
-        this.health = 100;
+        // this.speed = 5;
+        // this.health = 100;
+        // this.isInvincible = false;
+
+        // Base stats from config
+        this.baseSpeed = GAME_CONFIG.PLAYER.BASE_SPEED;
+        this.speed = this.baseSpeed;
+        this.maxHealth = GAME_CONFIG.PLAYER.BASE_HEALTH;
+        this.health = this.maxHealth;
         this.isInvincible = false;
 
-        // Attack properties
-        this.attackCooldown = 600; // 300ms between shots
+        // Weapon system
+        this.weaponManager = new WeaponManager();
+        this.currentWeapon = new PistolWeapon();
         this.timeSinceLastAttack = 0;
-        this.projectileDamage = 25;
 
-        // Use the loaded assets instead of the sheet parameter
+        // // Propiedades de ataque
+        // this.attackCooldown = 100;
+        // this.timeSinceLastAttack = 0;
+        // this.projectileDamage = 25;
+
+        // Player stats tracking
+        this.stats = {
+            enemiesKilled: 0,
+            shotsFired: 0,
+            powerUpsCollected: 0,
+            damageDealt: 0,
+            damageTaken: 0,
+        };
+
+        // Carga de assets
         this.sprite = new PIXI.AnimatedSprite(
             this.playerAssets.player.animations.idleDown
         );
@@ -27,38 +51,40 @@ export class Player extends Entity {
         this.sprite.currentAnimation = "idleDown";
         this.sprite.play();
 
+        // Posicion inicial del jugador
         this.position = {
             x: this.game.app.screen.width / 2,
             y: this.game.app.screen.height / 2,
         };
         this.sprite.position.copyFrom(this.position);
 
+        // Inicializar el estado de la máquina de estados
         this.stateMachine = new StateMachine(this);
         this.stateMachine.setState(new IdleState());
     }
 
     update(ticker) {
-        // Add this line to increment the attack timer!
         this.timeSinceLastAttack += ticker.deltaMS;
 
-        // First, we determine the player's intended movement from input
+        // Input movimiento
         this.handleInput();
 
-        // Handle mouse input for shooting
+        // Input mouse para disparar
         this.handleShooting();
 
-        // Then, we let the state machine handle the logic (like changing animations)
+        // La máquina de estados maneja la lógica (ej. cambiar animaciones)
         this.stateMachine.update(ticker);
 
-        // Finally, we apply the movement to the player's position
+        // Aplica el movimiento a la posición del jugador
         super.update(ticker);
+
+        this.updateVisualFeedback(ticker);
     }
 
     handleInput() {
         const input = this.game.input;
         this.velocity = { x: 0, y: 0 };
 
-        // Handle input to set velocity
         if (input.isKeyDown("ArrowUp") || input.isKeyDown("KeyW")) {
             this.velocity.y = -1;
         }
@@ -72,7 +98,7 @@ export class Player extends Entity {
             this.velocity.x = 1;
         }
 
-        // Normalize diagonal movement
+        // Normalizar el movimiento diagonal
         if (this.velocity.x !== 0 && this.velocity.y !== 0) {
             const length = Math.sqrt(
                 this.velocity.x ** 2 + this.velocity.y ** 2
@@ -88,69 +114,161 @@ export class Player extends Entity {
     handleShooting() {
         const input = this.game.input;
 
-        // Check if mouse was clicked and attack is off cooldown
+        // Check if can shoot
         if (
-            input.wasMouseJustClicked() &&
-            this.timeSinceLastAttack >= this.attackCooldown
+            input.isMouseDown() &&
+            this.timeSinceLastAttack >= this.currentWeapon.cooldown
         ) {
             this.shoot();
-            this.timeSinceLastAttack = 0; // Reset cooldown
         }
     }
 
     shoot() {
-        // Get mouse position in screen coordinates
+        // Get mouse position in world coordinates
         const mousePos = this.game.input.getMousePosition();
-
-        // Convert screen coordinates to world coordinates
         const worldMousePos = this.screenToWorldPosition(
             mousePos.x,
             mousePos.y
         );
 
-        // Create projectile from player center to mouse position
-        const projectile = new Projectile(
-            this.game,
-            this.position.x, // Start X (player center)
-            this.position.y, // Start Y (player center)
-            worldMousePos.x, // Target X (mouse in world)
-            worldMousePos.y, // Target Y (mouse in world)
-            this.projectileDamage
-        );
+        // Use current weapon's fire method
+        this.currentWeapon.fire(this, worldMousePos);
 
-        // Add projectile to game
-        this.game.addEntity(projectile);
-
-        console.log(
-            `Player shot projectile toward (${worldMousePos.x.toFixed(
-                0
-            )}, ${worldMousePos.y.toFixed(0)})`
-        );
+        // Update stats
+        this.stats.shotsFired++;
+        this.timeSinceLastAttack = 0;
     }
 
-    screenToWorldPosition(screenX, screenY) {
-        // Convert screen coordinates to world coordinates
-        // Account for camera position (world pivot/position)
+    // Method to switch weapons
+    switchWeapon(newWeapon) {
+        this.currentWeapon = newWeapon;
+        console.log(`🔄 Switched to ${newWeapon.name}!`);
 
-        // Screen center
+        // Visual feedback
+        this.showWeaponSwitchEffect();
+    }
+
+    showWeaponSwitchEffect() {
+        // Brief color flash to indicate weapon change
+        const originalTint = this.sprite.tint;
+        this.sprite.tint = this.currentWeapon.color;
+
+        setTimeout(() => {
+            if (!this.isInvincible) {
+                this.sprite.tint = originalTint;
+            }
+        }, 200);
+    }
+
+    // shoot() {
+    //     // Posición del mouse en pantalla
+    //     const mousePos = this.game.input.getMousePosition();
+
+    //     // Convertir coordenadas de pantalla a coordenadas del mundo
+    //     const worldMousePos = this.screenToWorldPosition(
+    //         mousePos.x,
+    //         mousePos.y
+    //     );
+
+    //     // Crear proyectil
+    //     const projectile = new Projectile(
+    //         this.game,
+    //         this.position.x, // Start X (player center)
+    //         this.position.y, // Start Y (player center)
+    //         worldMousePos.x, // Target X (mouse in world)
+    //         worldMousePos.y, // Target Y (mouse in world)
+    //         this.projectileDamage,
+    //         this
+    //     );
+
+    //     // Agregar proyectil al juego
+    //     this.game.addEntity(projectile);
+
+    //     console.log(
+    //         `Player shot projectile toward (${worldMousePos.x.toFixed(
+    //             0
+    //         )}, ${worldMousePos.y.toFixed(0)})`
+    //     );
+    // }
+
+    // shootShotgun() {
+    //     // Posición del mouse en pantalla
+    //     const mousePos = this.game.input.getMousePosition();
+
+    //     // Convertir coordenadas de pantalla a coordenadas del mundo
+    //     const worldMousePos = this.screenToWorldPosition(
+    //         mousePos.x,
+    //         mousePos.y
+    //     );
+
+    //     // Configuración del shotgun
+    //     const projectileCount = 5; // 🔧 Cambia este número para más/menos proyectiles
+    //     const spreadAngle = 15; // 🔧 Grados totales de separación entre proyectiles
+    //     const projectileDistance = 500; // Distancia de los proyectiles
+    //     const delay = 100;
+
+    //     // Calcular ángulo base hacia el mouse
+    //     const dx = worldMousePos.x - this.position.x;
+    //     const dy = worldMousePos.y - this.position.y;
+    //     const baseAngle = Math.atan2(dy, dx);
+
+    //     // Crear proyectiles con spread
+    //     for (let i = 0; i < projectileCount; i++) {
+    //         // Calcular offset del ángulo para cada proyectil
+    //         // Distribuye los proyectiles uniformemente en el spread
+    //         const angleStep =
+    //             (spreadAngle * Math.PI) / 180 / (projectileCount - 1);
+    //         const angleOffset = (i - (projectileCount - 1) / 2) * angleStep;
+    //         const projectileAngle = baseAngle + angleOffset;
+
+    //         // Calcular posición objetivo
+    //         const targetX =
+    //             this.position.x +
+    //             Math.cos(projectileAngle) * projectileDistance;
+    //         const targetY =
+    //             this.position.y +
+    //             Math.sin(projectileAngle) * projectileDistance;
+
+    //         setTimeout(() => {
+    //             // Crear proyectil
+    //             const projectile = new Projectile(
+    //                 this.game,
+    //                 this.position.x, // Start X (player center)
+    //                 this.position.y, // Start Y (player center)
+    //                 targetX, // Target X (calculated)
+    //                 targetY, // Target Y (calculated)
+    //                 this.projectileDamage,
+    //                 this
+    //             );
+
+    //             // Agregar proyectil al juego
+    //             this.game.addEntity(projectile);
+    //         }, Math.random() * delay); // Delay para cada proyectil
+    //     }
+
+    //     console.log(
+    //         `Player shot ${projectileCount} projectiles with ${spreadAngle}° spread`
+    //     );
+    // }
+
+    // Convierte las coordenadas de pantalla a coordenadas del mundo (donde esta el jugador)
+    screenToWorldPosition(screenX, screenY) {
+        // Centro de la pantalla
         const screenCenterX = this.game.app.screen.width / 2;
         const screenCenterY = this.game.app.screen.height / 2;
 
-        // Mouse position relative to screen center
+        // Posición relativa del mouse respecto al centro de la pantalla
         const relativeX = screenX - screenCenterX;
         const relativeY = screenY - screenCenterY;
 
-        // World position = player position + relative mouse position
+        // Devuelve las coordenadas del mundo ajustadas a la posición del jugador
         return {
             x: this.position.x + relativeX,
             y: this.position.y + relativeY,
         };
     }
 
-    /**
-     * Changes the sprite's animation texture array.
-     * Prevents restarting the animation if it's already playing.
-     */
+    // Cambiar las texturas de la animación del sprite (se usa en la maquina de estados)
     playAnimation(animationName) {
         if (this.sprite.currentAnimation === animationName) return;
 
@@ -160,24 +278,113 @@ export class Player extends Entity {
         this.sprite.play();
     }
 
+    // Take damage method
     takeDamage(amount) {
         if (this.isInvincible) return;
 
         this.health -= amount;
-        console.log(`Player health: ${this.health}`);
+        this.stats.damageTaken += amount;
 
+        console.log(
+            `💔 Player took ${amount} damage! Health: ${this.health}/${this.maxHealth}`
+        );
+
+        // Check for game over
         if (this.health <= 0) {
-            console.log("GAME OVER");
-
-            this.sprite.tint = 0x555555;
-            this.game.app.ticker.stop();
+            this.die();
+            return;
         }
 
+        // Activate invincibility frames
+        this.activateInvincibility();
+    }
+
+    // Heal player
+    heal(amount) {
+        const oldHealth = this.health;
+        this.health = Math.min(this.health + amount, this.maxHealth);
+        const actualHeal = this.health - oldHealth;
+
+        if (actualHeal > 0) {
+            console.log(
+                `💚 Player healed ${actualHeal}! Health: ${this.health}/${this.maxHealth}`
+            );
+            this.showHealEffect();
+        }
+
+        return actualHeal;
+    }
+
+    // Increase speed
+    increaseSpeed(amount) {
+        const maxSpeed = GAME_CONFIG.PLAYER.MAX_PLAYER_SPEED || 10;
+        if (this.speed < maxSpeed) {
+            this.speed = Math.min(this.speed + amount, maxSpeed);
+            console.log(
+                `⚡ Speed increased! New speed: ${this.speed.toFixed(1)}`
+            );
+            return true;
+        }
+        console.log(`⚡ Already at maximum speed!`);
+        return false;
+    }
+
+    activateInvincibility() {
         this.isInvincible = true;
-        this.sprite.tint = 0xff0000;
+        this.sprite.tint = GAME_CONFIG.PLAYER.DAMAGE_TINT;
+
         setTimeout(() => {
             this.isInvincible = false;
-            this.sprite.tint = null;
-        }, 1000);
+            this.sprite.tint = 0xffffff; // Reset to normal
+        }, GAME_CONFIG.PLAYER.INVINCIBILITY_TIME);
+    }
+
+    showHealEffect() {
+        // Brief green flash for healing
+        const originalTint = this.sprite.tint;
+        this.sprite.tint = 0x00ff00;
+
+        setTimeout(() => {
+            if (!this.isInvincible) {
+                this.sprite.tint = originalTint;
+            }
+        }, 300);
+    }
+
+    updateVisualFeedback(ticker) {
+        // Could add breathing effect, weapon glow, etc.
+        if (this.currentWeapon && this.timeSinceLastAttack < 100) {
+            // Brief weapon fire effect
+        }
+    }
+
+    die() {
+        console.log("💀 GAME OVER");
+        console.log("📊 Final Stats:", this.stats);
+
+        this.sprite.tint = 0x555555;
+        this.game.gameOver();
+    }
+
+    // Get current weapon info for UI
+    getWeaponInfo() {
+        return {
+            name: this.currentWeapon.name,
+            damage: this.currentWeapon.damage,
+            cooldown: this.currentWeapon.cooldown,
+            cooldownProgress:
+                this.timeSinceLastAttack / this.currentWeapon.cooldown,
+        };
+    }
+
+    // Get player stats for UI
+    getStats() {
+        return {
+            health: this.health,
+            maxHealth: this.maxHealth,
+            speed: this.speed,
+            weapon: this.currentWeapon.name,
+            ...this.stats,
+        };
     }
 }
