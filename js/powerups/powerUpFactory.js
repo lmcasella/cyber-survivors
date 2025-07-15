@@ -1,16 +1,20 @@
 import {
-    PistolPowerUp,
-    ShotgunPowerUp,
-    MachineGunPowerUp,
-    BurstPowerUp,
+    BowPowerUp,
+    WandPowerUp,
+    StaffPowerUp,
+    WhipPowerUp,
+    HealthPowerUp,
+    SpeedPowerUp,
 } from "./weaponPowerUps.js";
 
 export class PowerUpFactory {
     static powerUpTypes = [
-        { type: "pistol", class: PistolPowerUp, weight: 3 },
-        { type: "shotgun", class: ShotgunPowerUp, weight: 2 },
-        { type: "machinegun", class: MachineGunPowerUp, weight: 2 },
-        { type: "burst", class: BurstPowerUp, weight: 1 }, // Rarer
+        { type: "bow", class: BowPowerUp, weight: 3 },
+        { type: "wand", class: WandPowerUp, weight: 2 },
+        { type: "staff", class: StaffPowerUp, weight: 2 },
+        { type: "whip", class: WhipPowerUp, weight: 1 }, // Rarer
+        { type: "health", class: HealthPowerUp, weight: 4 }, // Common
+        { type: "speed", class: SpeedPowerUp, weight: 2 }, // Uncommon
     ];
 
     /**
@@ -37,6 +41,14 @@ export class PowerUpFactory {
         }
 
         return new powerUpType.class(gameManager);
+    }
+
+    /**
+     * Get random type name for wave-based spawning
+     */
+    static getRandomType() {
+        const randomType = this.getWeightedRandomType();
+        return randomType.type;
     }
 
     /**

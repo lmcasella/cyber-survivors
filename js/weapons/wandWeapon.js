@@ -1,9 +1,9 @@
 import { WeaponStrategy } from "./weaponStrategy.js";
 
-export class ShotgunWeapon extends WeaponStrategy {
+export class WandWeapon extends WeaponStrategy {
     constructor() {
         super({
-            name: "Shotgun",
+            name: "Wand",
             damage: 20,
             cooldown: 600,
             projectileCount: 3,
@@ -42,8 +42,6 @@ export class ShotgunWeapon extends WeaponStrategy {
             player.game.addEntity(projectile);
         });
 
-        console.log(
-            `💥 Fired ${this.name} with ${this.projectileCount} pellets!`
-        );
+        console.log(`💥 Fired ${this.name} with ${this.projectileCount}!`);
     }
 }

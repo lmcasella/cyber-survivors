@@ -1,65 +1,69 @@
 import { PowerUp } from "./powerUp.js";
-import { PistolWeapon } from "../weapons/pistolWeapon.js";
-import { ShotgunWeapon } from "../weapons/shotgunWeapon.js";
-import { MachineGunWeapon } from "../weapons/machinegunWeapon.js";
-import { BurstWeapon } from "../weapons/burstWeapon.js";
+import { BowWeapon } from "../weapons/bowWeapon.js";
+import { WandWeapon } from "../weapons/wandWeapon.js";
+import { StaffWeapon } from "../weapons/StaffWeapon.js";
+import { WhipWeapon } from "../weapons/whipWeapon.js";
 
-export class PistolPowerUp extends PowerUp {
+export class BowPowerUp extends PowerUp {
     constructor(gameManager) {
-        super(gameManager, "pistol", {
-            name: "Pistol Upgrade",
+        super(gameManager, "bow", {
+            name: "Bow Upgrade",
             color: 0xffff00,
             radius: 8,
+            weaponTexture: gameManager.assets.weapons.bow,
         });
     }
 
     onPickup(player) {
-        player.switchWeapon(new PistolWeapon());
+        player.switchWeapon(new BowWeapon());
         console.log(`🎁 Player picked up ${this.name}!`);
     }
 }
 
-export class ShotgunPowerUp extends PowerUp {
+export class WandPowerUp extends PowerUp {
     constructor(gameManager) {
-        super(gameManager, "shotgun", {
-            name: "Shotgun Upgrade",
+        super(gameManager, "wand", {
+            name: "Wand Upgrade",
             color: 0xff8800,
             radius: 10,
+            weaponTexture: gameManager.assets.weapons.wand,
         });
     }
 
     onPickup(player) {
-        player.switchWeapon(new ShotgunWeapon());
+        player.switchWeapon(new WandWeapon());
         console.log(`🎁 Player picked up ${this.name}!`);
     }
 }
 
-export class MachineGunPowerUp extends PowerUp {
+export class StaffPowerUp extends PowerUp {
     constructor(gameManager) {
-        super(gameManager, "machinegun", {
-            name: "Machine Gun Upgrade",
+        super(gameManager, "staff", {
+            name: "Staff Upgrade",
             color: 0xff4444,
             radius: 9,
+            weaponTexture: gameManager.assets.weapons.staff,
         });
     }
 
     onPickup(player) {
-        player.switchWeapon(new MachineGunWeapon());
+        player.switchWeapon(new StaffWeapon());
         console.log(`🎁 Player picked up ${this.name}!`);
     }
 }
 
-export class BurstPowerUp extends PowerUp {
+export class WhipPowerUp extends PowerUp {
     constructor(gameManager) {
-        super(gameManager, "burst", {
-            name: "Burst Rifle Upgrade",
+        super(gameManager, "whip", {
+            name: "Whip Upgrade",
             color: 0x44ff44,
             radius: 9,
+            weaponTexture: gameManager.assets.weapons.whip,
         });
     }
 
     onPickup(player) {
-        player.switchWeapon(new BurstWeapon());
+        player.switchWeapon(new WhipWeapon());
         console.log(`🎁 Player picked up ${this.name}!`);
     }
 }

@@ -69,6 +69,12 @@ export class GameManager {
             height: app.screen.height * 4,
         });
 
+        // Repeat the background texture
+        background.tileScale.set(1, 1);
+        background.anchor.set(0.5, 0.5);
+        background.position.set(app.screen.width / 2, app.screen.height / 2);
+        background.zIndex = -1; // Ensure background is behind everything
+
         this.world.addChild(background);
     }
 

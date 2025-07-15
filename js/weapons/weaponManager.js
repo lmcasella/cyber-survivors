@@ -1,15 +1,15 @@
-import { PistolWeapon } from "./pistolWeapon.js";
-import { ShotgunWeapon } from "./shotgunWeapon.js";
-import { MachineGunWeapon } from "./machinegunWeapon.js";
-import { BurstWeapon } from "./burstWeapon.js";
+import { BowWeapon } from "./bowWeapon.js";
+import { WandWeapon } from "./wandWeapon.js";
+import { StaffWeapon } from "./StaffWeapon.js";
+import { WhipWeapon } from "./whipWeapon.js";
 
 export class WeaponManager {
     constructor() {
         this.availableWeapons = {
-            pistol: PistolWeapon,
-            shotgun: ShotgunWeapon,
-            machinegun: MachineGunWeapon,
-            burst: BurstWeapon,
+            bow: BowWeapon,
+            wand: WandWeapon,
+            staff: StaffWeapon,
+            whip: WhipWeapon,
         };
     }
 
@@ -59,9 +59,9 @@ export class WeaponManager {
      * @returns {string} Recommended weapon name
      */
     getRecommendedWeapon(wave) {
-        if (wave <= 2) return "pistol";
-        if (wave <= 5) return "shotgun";
-        if (wave <= 8) return "machinegun";
-        return "burst";
+        if (wave <= 2) return "bow";
+        if (wave <= 5) return "wand";
+        if (wave <= 8) return "staff";
+        return "whip";
     }
 }

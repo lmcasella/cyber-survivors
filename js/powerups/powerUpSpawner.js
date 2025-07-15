@@ -40,14 +40,14 @@ export class PowerUpSpawner {
         if (this.game.currentWave <= 2) {
             // Early waves: basic powerups
             // powerUpType = Math.random() < 0.7 ? "health" : "pistol";
-            powerUpType = "pistol";
+            powerUpType = "bow";
         } else if (this.game.currentWave <= 5) {
             // Mid waves: introduce better weapons
             const rand = Math.random();
             // if (rand < 0.3) powerUpType = "health";
             // else
-            if (rand < 0.5) powerUpType = "pistol";
-            else if (rand < 0.8) powerUpType = "shotgun";
+            if (rand < 0.5) powerUpType = "bow";
+            else if (rand < 0.8) powerUpType = "wand";
             else powerUpType = "speed";
         } else {
             // Late waves: all powerups available

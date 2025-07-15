@@ -17,11 +17,12 @@ export class AssetLoader {
             // goblin: "assets/images/enemies/goblin/texture.json",
         });
 
-        // PIXI.Assets.addBundle("weapons", {
-        //     sword: "assets/images/weapons/sword.png",
-        //     bow: "assets/images/weapons/bow.png",
-        //     staff: "assets/images/weapons/staff.png",
-        // });
+        PIXI.Assets.addBundle("weapons", {
+            bow: "assets/images/weapons/arco.png",
+            staff: "assets/images/weapons/baculo.png",
+            wand: "assets/images/weapons/vara_enredada.png",
+            whip: "assets/images/weapons/latigo_fuego.png",
+        });
 
         // PIXI.Assets.addBundle("audio", {
         //     backgroundMusic: "assets/audio/background.mp3",
@@ -30,10 +31,10 @@ export class AssetLoader {
         // });
 
         // Load all bundles in parallel
-        const [playerAssets, enemyAssets] = await Promise.all([
+        const [playerAssets, enemyAssets, weaponAssets] = await Promise.all([
             PIXI.Assets.loadBundle("player"),
             PIXI.Assets.loadBundle("enemies"),
-            // PIXI.Assets.loadBundle("weapons"),
+            PIXI.Assets.loadBundle("weapons"),
             // PIXI.Assets.loadBundle("audio"),
         ]);
 
@@ -41,7 +42,7 @@ export class AssetLoader {
         return {
             player: playerAssets,
             enemies: enemyAssets,
-            // weapons: weaponAssets,
+            weapons: weaponAssets,
             // audio: audioAssets,
         };
     }

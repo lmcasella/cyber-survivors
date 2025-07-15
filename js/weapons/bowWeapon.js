@@ -1,9 +1,9 @@
 import { WeaponStrategy } from "./weaponStrategy.js";
 
-export class PistolWeapon extends WeaponStrategy {
+export class BowWeapon extends WeaponStrategy {
     constructor() {
         super({
-            name: "Pistol",
+            name: "Bow",
             damage: 25,
             cooldown: 300,
             projectileCount: 1,

@@ -4,7 +4,7 @@ import { Entity } from "./entity.js";
 import { StateMachine } from "../state-machine/stateMachine.js";
 import { IdleState } from "../entities/states/playerStates.js";
 import { Projectile } from "./projectile.js"; // Import the Projectile class
-import { PistolWeapon } from "../weapons/pistolWeapon.js";
+import { BowWeapon } from "../weapons/bowWeapon.js";
 import { WeaponManager } from "../weapons/weaponManager.js";
 import { GAME_CONFIG } from "../core/gameConstants.js";
 
@@ -25,7 +25,7 @@ export class Player extends Entity {
 
         // Weapon system
         this.weaponManager = new WeaponManager();
-        this.currentWeapon = new PistolWeapon();
+        this.currentWeapon = new BowWeapon();
         this.timeSinceLastAttack = 0;
 
         // // Propiedades de ataque

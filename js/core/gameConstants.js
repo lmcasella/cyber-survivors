@@ -1,32 +1,32 @@
 export const GAME_CONFIG = {
     // Weapon configurations
     WEAPONS: {
-        PISTOL: {
-            name: "Pistol",
+        BOW: {
+            name: "Arco",
             damage: 25,
             cooldown: 300,
             projectileCount: 1,
             spreadAngle: 0,
-            color: 0xffff00,
+            color: 0x00ff00,
         },
-        SHOTGUN: {
-            name: "Shotgun",
+        WAND: {
+            name: "Vara Enredada",
             damage: 20,
             cooldown: 600,
             projectileCount: 3,
             spreadAngle: 20,
             color: 0xff8800,
         },
-        MACHINE_GUN: {
-            name: "Machine Gun",
+        STAFF: {
+            name: "Baculo",
             damage: 15,
             cooldown: 80,
             projectileCount: 1,
             spreadAngle: 5,
             color: 0xff4444,
         },
-        BURST: {
-            name: "Burst Rifle",
+        WHIP: {
+            name: "Latigo de Fuego",
             damage: 22,
             cooldown: 400,
             projectileCount: 5,
@@ -81,11 +81,27 @@ export const GAME_CONFIG = {
     PLAYER: {
         BASE_HEALTH: 100,
         BASE_SPEED: 5,
-        INVINCIBILITY_TIME: 1000, // 1 second after taking damage
+        INVINCIBILITY_TIME: 1500, // 1 second after taking damage
 
         // Visual feedback
         DAMAGE_TINT: 0xff0000, // Red when damaged
         INVINCIBLE_TINT: 0xaaaaaa, // Gray when invincible
+    },
+
+    // Pathfinding settings
+    PATHFINDING: {
+        GRID_SIZE: 32,
+        UPDATE_INTERVAL: 500,
+        MAX_PATH_LENGTH: 50,
+        REACHED_THRESHOLD: 20,
+    },
+
+    // Obstacle settings
+    OBSTACLES: {
+        DENSITY: 0.1, // Percentage of world with obstacles
+        MIN_SIZE: 32,
+        MAX_SIZE: 96,
+        TYPES: ["wall", "rock", "tree", "building"],
     },
 
     // Game progression
@@ -94,7 +110,7 @@ export const GAME_CONFIG = {
         VICTORY_WAVE: 20, // Game ends at wave 20
 
         // Special wave events
-        BOSS_WAVES: [5, 10, 15, 20], // Waves with extra difficulty
+        BOSS_WAVES: [5, 10, 15], // Waves with extra difficulty
         POWERUP_WAVES: [3, 7, 12], // Guaranteed powerup spawn
     },
 
