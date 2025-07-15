@@ -92,16 +92,25 @@ export const GAME_CONFIG = {
     PATHFINDING: {
         GRID_SIZE: 32,
         UPDATE_INTERVAL: 500,
-        MAX_PATH_LENGTH: 50,
         REACHED_THRESHOLD: 20,
     },
 
     // Obstacle settings
     OBSTACLES: {
-        DENSITY: 0.1, // Percentage of world with obstacles
-        MIN_SIZE: 32,
-        MAX_SIZE: 96,
-        TYPES: ["wall", "rock", "tree", "building"],
+        TREE_COUNT: 15,
+        ROCK_COUNT: 10,
+        BUILDING_COUNT: 5,
+        SCATTERED_COUNT: 20,
+    },
+
+    // Z-Index layers
+    Z_INDEX: {
+        BACKGROUND: 0,
+        OBSTACLES: 100,
+        ENEMIES: 200,
+        PLAYER: 300,
+        PROJECTILES: 400,
+        UI: 1000,
     },
 
     // Game progression

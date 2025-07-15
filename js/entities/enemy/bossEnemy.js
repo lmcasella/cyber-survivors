@@ -6,7 +6,7 @@ export class BossEnemy extends BaseEnemy {
     constructor(gameManager, player, enemyAssets) {
         // Define fast enemy configuration
         const fastConfig = {
-            speed: 2, // Very fast
+            speed: 4.3, // Very fast
             health: 200, // Glass cannon
             damage: 50, // Lower damage
             attackCooldown: 600,
