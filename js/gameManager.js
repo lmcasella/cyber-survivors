@@ -11,6 +11,7 @@ import { PowerUpFactory } from "./powerups/powerUpFactory.js";
 import { PowerUpSpawner } from "./powerups/powerUpSpawner.js";
 import { GAME_CONFIG } from "./core/gameConstants.js";
 import { BaseEnemy } from "./entities/enemy/baseEnemy.js";
+import { AudioManager } from "./core/audioManager.js";
 
 // import { TilingSprite } from "./pixi.js";
 // import * as PIXI from "./pixi.js";
@@ -52,6 +53,8 @@ export class GameManager {
         this.backgroundTileSize = 2048; // Size of each background tile
         this.lastPlayerChunkX = 0;
         this.lastPlayerChunkY = 0;
+
+        this.audioManager = new AudioManager();
     }
 
     async createBackground(app) {
@@ -192,6 +195,8 @@ export class GameManager {
         const assets = await AssetLoader.loadAssets();
         this.assets = assets;
 
+        await this.audioManager.loadAudioAssets();
+
         const player = new Player(this, assets.player);
         this.player = player;
         this.addEntity(player);
@@ -199,6 +204,8 @@ export class GameManager {
         // Initialize background after player is created
         const bgTexture = await PIXI.Assets.load("assets/images/bg.png");
         this.createBackgroundGrid(bgTexture);
+
+        this.startGameMusic();
 
         // Start the first wave
         this.spawnWave();
@@ -555,6 +562,32 @@ export class GameManager {
     resumeGame() {
         this.gameState = "playing";
         console.log("▶️ Game resumed");
+    }
+
+    startGameMusic() {
+        // Add user interaction handler for audio
+        this.addAudioInteractionHandler();
+    }
+
+    addAudioInteractionHandler() {
+        const startAudio = () => {
+            this.audioManager.playMusic();
+            // Remove event listeners after first interaction
+            document.removeEventListener("click", startAudio);
+            document.removeEventListener("keydown", startAudio);
+            console.log("🎵 Audio enabled after user interaction");
+        };
+
+        // Audio requires user interaction to start
+        document.addEventListener("click", startAudio, { once: true });
+        document.addEventListener("keydown", startAudio, { once: true });
+
+        console.log("⏳ Click or press any key to enable audio...");
+    }
+
+    // ✅ Method to get audio manager (for other classes to use)
+    getAudioManager() {
+        return this.audioManager;
     }
 
     // Utility methods

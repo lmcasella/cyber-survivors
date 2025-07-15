@@ -24,6 +24,8 @@ export class WeaponStrategy {
      * Helper method to create a single projectile
      */
     createProjectile(player, startX, startY, targetX, targetY) {
+        player.game.audioManager.playProjectileSound();
+
         return new Projectile(
             player.game,
             startX,

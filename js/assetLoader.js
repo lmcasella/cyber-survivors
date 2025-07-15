@@ -24,49 +24,28 @@ export class AssetLoader {
             whip: "assets/images/weapons/latigo_fuego.png",
         });
 
-        // PIXI.Assets.addBundle("audio", {
-        //     backgroundMusic: "assets/audio/background.mp3",
-        //     shootSound: "assets/audio/shoot.wav",
-        //     hitSound: "assets/audio/hit.wav",
-        // });
+        PIXI.Assets.addBundle("audio", {
+            music: "assets/fx/music.wav",
+            enemy_death: "assets/fx/enemy_death.wav",
+            projectile: "assets/fx/projectile.wav",
+            damaged: "assets/fx/damaged.wav",
+        });
 
         // Load all bundles in parallel
-        const [playerAssets, enemyAssets, weaponAssets] = await Promise.all([
-            PIXI.Assets.loadBundle("player"),
-            PIXI.Assets.loadBundle("enemies"),
-            PIXI.Assets.loadBundle("weapons"),
-            // PIXI.Assets.loadBundle("audio"),
-        ]);
+        const [playerAssets, enemyAssets, weaponAssets, audioAssets] =
+            await Promise.all([
+                PIXI.Assets.loadBundle("player"),
+                PIXI.Assets.loadBundle("enemies"),
+                PIXI.Assets.loadBundle("weapons"),
+                PIXI.Assets.loadBundle("audio"),
+            ]);
 
         // Return organized assets
         return {
             player: playerAssets,
             enemies: enemyAssets,
             weapons: weaponAssets,
-            // audio: audioAssets,
+            audio: audioAssets,
         };
     }
-
-    /**
-     * Load additional assets during gameplay (for dynamic loading)
-     */
-    // static async loadLevelAssets(levelNumber) {
-    //     const levelAssets = await PIXI.Assets.load(
-    //         `assets/levels/level${levelNumber}/background.png`
-    //     );
-    //     return levelAssets;
-    // }
-
-    /**
-     * Preload critical assets first, then load others in background
-     */
-    // static async loadCriticalAssets() {
-    //     // Load only essential assets first for faster game start
-    //     const criticalAssets = await PIXI.Assets.load([
-    //         "assets/images/player/texture.json",
-    //         "assets/images/ui/loading.png",
-    //     ]);
-
-    //     return criticalAssets;
-    // }
 }

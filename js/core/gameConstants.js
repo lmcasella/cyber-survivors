@@ -136,6 +136,21 @@ export const GAME_CONFIG = {
         PROJECTILE_LIFETIME: 3000,
     },
 
+    AUDIO: {
+        MUSIC_VOLUME: 0.5,
+        SFX_VOLUME: 0.7,
+        ENABLE_MUSIC: true,
+        ENABLE_SFX: true,
+
+        // Sound file paths
+        SOUNDS: {
+            MUSIC: "assets/fx/music.wav",
+            ENEMY_DEATH: "assets/fx/enemy_death.wav",
+            PROJECTILE: "assets/fx/projectile.wav",
+            DAMAGED: "assets/fx/damaged.wav",
+        },
+    },
+
     // Debug settings
     DEBUG: {
         SHOW_GRID: true,

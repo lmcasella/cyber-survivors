@@ -325,7 +325,16 @@ export class BaseEnemy extends Entity {
     }
 
     die() {
-        console.log(`${this.enemyType} died!`);
+        // ✅ Play death sound
+        this.game.audioManager.playEnemyDeath();
+
+        // Update player stats
+        this.player.stats.enemiesKilled++;
+        this.player.stats.damageDealt += this.health; // Add remaining damage
+
+        console.log(`💀 ${this.constructor.name} has been defeated!`);
+
+        // Remove from game
         this.game.removeEntity(this);
     }
 }

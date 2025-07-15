@@ -160,97 +160,6 @@ export class Player extends Entity {
         }, 200);
     }
 
-    // shoot() {
-    //     // Posición del mouse en pantalla
-    //     const mousePos = this.game.input.getMousePosition();
-
-    //     // Convertir coordenadas de pantalla a coordenadas del mundo
-    //     const worldMousePos = this.screenToWorldPosition(
-    //         mousePos.x,
-    //         mousePos.y
-    //     );
-
-    //     // Crear proyectil
-    //     const projectile = new Projectile(
-    //         this.game,
-    //         this.position.x, // Start X (player center)
-    //         this.position.y, // Start Y (player center)
-    //         worldMousePos.x, // Target X (mouse in world)
-    //         worldMousePos.y, // Target Y (mouse in world)
-    //         this.projectileDamage,
-    //         this
-    //     );
-
-    //     // Agregar proyectil al juego
-    //     this.game.addEntity(projectile);
-
-    //     console.log(
-    //         `Player shot projectile toward (${worldMousePos.x.toFixed(
-    //             0
-    //         )}, ${worldMousePos.y.toFixed(0)})`
-    //     );
-    // }
-
-    // shootShotgun() {
-    //     // Posición del mouse en pantalla
-    //     const mousePos = this.game.input.getMousePosition();
-
-    //     // Convertir coordenadas de pantalla a coordenadas del mundo
-    //     const worldMousePos = this.screenToWorldPosition(
-    //         mousePos.x,
-    //         mousePos.y
-    //     );
-
-    //     // Configuración del shotgun
-    //     const projectileCount = 5; // 🔧 Cambia este número para más/menos proyectiles
-    //     const spreadAngle = 15; // 🔧 Grados totales de separación entre proyectiles
-    //     const projectileDistance = 500; // Distancia de los proyectiles
-    //     const delay = 100;
-
-    //     // Calcular ángulo base hacia el mouse
-    //     const dx = worldMousePos.x - this.position.x;
-    //     const dy = worldMousePos.y - this.position.y;
-    //     const baseAngle = Math.atan2(dy, dx);
-
-    //     // Crear proyectiles con spread
-    //     for (let i = 0; i < projectileCount; i++) {
-    //         // Calcular offset del ángulo para cada proyectil
-    //         // Distribuye los proyectiles uniformemente en el spread
-    //         const angleStep =
-    //             (spreadAngle * Math.PI) / 180 / (projectileCount - 1);
-    //         const angleOffset = (i - (projectileCount - 1) / 2) * angleStep;
-    //         const projectileAngle = baseAngle + angleOffset;
-
-    //         // Calcular posición objetivo
-    //         const targetX =
-    //             this.position.x +
-    //             Math.cos(projectileAngle) * projectileDistance;
-    //         const targetY =
-    //             this.position.y +
-    //             Math.sin(projectileAngle) * projectileDistance;
-
-    //         setTimeout(() => {
-    //             // Crear proyectil
-    //             const projectile = new Projectile(
-    //                 this.game,
-    //                 this.position.x, // Start X (player center)
-    //                 this.position.y, // Start Y (player center)
-    //                 targetX, // Target X (calculated)
-    //                 targetY, // Target Y (calculated)
-    //                 this.projectileDamage,
-    //                 this
-    //             );
-
-    //             // Agregar proyectil al juego
-    //             this.game.addEntity(projectile);
-    //         }, Math.random() * delay); // Delay para cada proyectil
-    //     }
-
-    //     console.log(
-    //         `Player shot ${projectileCount} projectiles with ${spreadAngle}° spread`
-    //     );
-    // }
-
     // Convierte las coordenadas de pantalla a coordenadas del mundo (donde esta el jugador)
     screenToWorldPosition(screenX, screenY) {
         // Centro de la pantalla
@@ -284,6 +193,7 @@ export class Player extends Entity {
 
         this.health -= amount;
         this.stats.damageTaken += amount;
+        this.game.audioManager.playPlayerDamaged();
 
         console.log(
             `💔 Player took ${amount} damage! Health: ${this.health}/${this.maxHealth}`
