@@ -1,6 +1,6 @@
 # 👾 Cyber Survivors
 
-[![Jugar en itch.io](https://img.shields.io/badge/Jugar_en-itch.io-FA5C5C?style=for-the-badge&logo=itch.io)](https://github.com/lmcasella/cyber-survivors)
+[![Jugar en itch.io](https://img.shields.io/badge/Jugar_en-itch.io-FA5C5C?style=for-the-badge&logo=itch.io)](https://kezgan.itch.io/cyber-survivors)
 
 Un videojuego de supervivencia en arena 2D al estilo _Vampire Survivors_, desarrollado en **JavaScript** utilizando **Pixi.js**. El jugador debe enfrentarse a hordas de enemigos, esquivando sus ataques y posicionándose estratégicamente para sobrevivir el mayor tiempo posible.
 
