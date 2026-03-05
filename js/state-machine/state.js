@@ -5,9 +5,9 @@ export class State {
     }
 
     // Metodo llamado en cada frame del juego mientras se está en el estado
-    update(owner, ticker) {
-        
-    }
+    update(owner, ticker) {}
+
+    updateEnemy(enemy, player) {}
 
     // Metodo llamado cuando se sale del estado
     exit(owner) {

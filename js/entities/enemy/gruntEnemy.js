@@ -1,42 +1,110 @@
 import { BaseEnemy } from "./baseEnemy.js";
+import { GruntWalkState } from "../states/gruntStates.js";
+import { StateMachine } from "../../state-machine/stateMachine.js";
 
 export class GruntEnemy extends BaseEnemy {
-    constructor(gameManager, player) {
+    constructor(gameManager, player, enemyAssets) {
+        const gruntConfig = {
+            speed: 3.5, // Slow and steady
+            health: 40, // Tanky
+            damage: 30, // High damage
+            attackCooldown: 1500, // Slow attacks
+            attackRange: 60, // Longer reach
+
+            // Grunt boids behavior - formation fighters
+            separationWeight: 10, // Less separation - they cluster
+            alignmentWeight: 0.1, // More alignment - move in formation
+            cohesionWeight: 0.2, // More cohesion - stick together
+            playerAttackWeight: 1.2, // Methodical approach
+        };
+
         // Call the constructor of the BaseEnemy class
-        super(gameManager, player);
-
-        // --- Define properties specific to this enemy type ---
-        this.speed = 3;
-        this.health = 20;
-        this.damage = 25;
-
-        // Customize boids behavior for grunt enemies
-        this.separationWeight = 15.0; // Stronger separation - they're bigger/bulkier
-        this.alignmentWeight = 0.3; // More alignment - they move in formation
-        this.cohesionWeight = 0.05; // More cohesion - they stick together
-        this.playerAttackWeight = 1.5; // Less aggressive - they're more defensive
-
-        // Create the visual sprite for this enemy
-        this.sprite = new PIXI.Graphics().circle(0, 0, 12).fill(0xff0000); // Red circle
-
-        // Position will be set by GameManager's spawnEnemiesAwayFromPlayer method
+        super(gameManager, player, enemyAssets, gruntConfig);
     }
 
-    // Optional: Override specific behaviors for grunt enemies
-    calculatePlayerAttackForce() {
-        // Grunts are more defensive - they approach more cautiously
-        const dx = this.player.position.x - this.position.x;
-        const dy = this.player.position.y - this.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    createSprite() {
+        // Use grunt-specific sprite
+        this.sprite = new PIXI.AnimatedSprite(
+            this.enemyAssets.demon.animations.walkDown
+        );
+        this.sprite.currentAnimation = "walkDown";
+        this.sprite.animationSpeed = 0.2; // Slower animation
+        this.sprite.anchor.set(0.5, 0.5);
+        this.sprite.scale.set(1.3); // Bigger sprite
+        // this.sprite.tint = 0x8b0000;
+        this.sprite.play();
 
-        if (distance > 0) {
-            // Slower approach when close to player
-            const approachMultiplier = distance > 50 ? 0.6 : 0.3;
-            return {
-                x: (dx / distance) * approachMultiplier,
-                y: (dy / distance) * approachMultiplier,
-            };
+        this.sprite.position.copyFrom(this.position);
+    }
+
+    createStateMachine() {
+        this.stateMachine = new StateMachine(this, this.player);
+        this.stateMachine.setState(new GruntWalkState());
+    }
+
+    playAnimation(animationName) {
+        // Grunt-specific animation mapping
+        const gruntAnimations = {
+            walkUp: "walkUp",
+            walkDown: "walkDown",
+            walkLeft: "walkLeft",
+            walkRight: "walkRight",
+            // "chargeUp": "attackUp",    // Use attack animations for charging
+            // "chargeDown": "attackDown",
+            // "chargeLeft": "attackLeft",
+            // "chargeRight": "attackRight",
+            attackUp: "attackUp",
+            attackDown: "attackDown",
+            attackLeft: "attackLeft",
+            attackRight: "attackRight",
+        };
+
+        const mappedAnimation = gruntAnimations[animationName] || animationName;
+
+        if (this.sprite.currentAnimation === mappedAnimation) return;
+
+        try {
+            if (this.enemyAssets.demon.animations[mappedAnimation]) {
+                this.sprite.textures =
+                    this.enemyAssets.demon.animations[mappedAnimation];
+                this.sprite.currentAnimation = mappedAnimation;
+                this.sprite.play();
+            }
+        } catch (error) {
+            console.warn(`Grunt animation ${mappedAnimation} not found`);
         }
-        return { x: 0, y: 0 };
+    }
+
+    attackPlayerInCell() {
+        const attacked = super.attackPlayerInCell(); // Call base method
+
+        if (attacked) {
+            console.log(
+                `💪 GRUNT SMASH! Heavy attack for ${this.damage} damage!`
+            );
+
+            // Grunt-specific effects
+            this.createSmashEffect();
+        }
+
+        return attacked;
+    }
+
+    createSmashEffect() {
+        // Visual effect for grunt attack
+        const effect = new PIXI.Graphics();
+        effect.circle(0, 0, 20);
+        effect.fill(0xff0000);
+        effect.position.set(this.position.x, this.position.y);
+        effect.alpha = 0.7;
+
+        this.game.world.addChild(effect);
+
+        // Animate effect
+        setTimeout(() => {
+            if (effect.parent) {
+                this.game.world.removeChild(effect);
+            }
+        }, 500);
     }
 }

@@ -1,7 +1,12 @@
-import { GameManager } from './gameManager.js';
+// Import PIXI as ES6 module from CDN
+import * as PIXI from "https://cdn.skypack.dev/pixi.js@8.0.0";
 
-// This function runs once the HTML document is fully loaded.
-window.addEventListener('DOMContentLoaded', () => {
-  const game = new GameManager();
-  game.init();
-});
+// Make PIXI global for other files (temporary solution)
+window.PIXI = PIXI;
+
+// Import your game manager
+import { GameManager } from "./gameManager.js";
+
+// Initialize the game
+const game = new GameManager();
+game.init();
