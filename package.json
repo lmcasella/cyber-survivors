@@ -1,0 +1,22 @@
+{
+  "name": "cyber-survivors",
+  "version": "1.0.0",
+  "description": "[![Jugar en itch.io](https://img.shields.io/badge/Jugar_en-itch.io-FA5C5C?style=for-the-badge&logo=itch.io)](link)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lmcasella/cyber-survivors.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lmcasella/cyber-survivors/issues"
+  },
+  "homepage": "https://github.com/lmcasella/cyber-survivors#readme"
+}

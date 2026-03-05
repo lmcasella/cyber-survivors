@@ -66,7 +66,7 @@ export const GAME_CONFIG = {
         SPAWN_DISTANCE_MAX: 20, // celdas
 
         // OLeadas
-        GRUNT_BASE_COUNT: 300,
+        GRUNT_BASE_COUNT: 5,
         GRUNT_WAVE_MULTIPLIER: 2,
         FAST_BASE_COUNT: 1,
         FAST_WAVE_MULTIPLIER: 1,
