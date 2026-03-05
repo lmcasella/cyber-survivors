@@ -10,23 +10,23 @@ export class BaseEnemy extends Entity {
         this.player = player;
         this.enemyAssets = enemyAssets;
 
-        // Apply config (set by child classes)
+        // Configuracion inicial del enemigo (despues se pisa por cada tipo de enemigo)
         this.speed = config.speed || 2;
         this.health = config.health || 20;
         this.damage = config.damage || 10;
         this.attackCooldown = config.attackCooldown || 1000;
         this.attackRange = config.attackRange || 50;
 
-        // Boids behavior (customizable per enemy type)
+        // Comportamiento de boids
         this.separationWeight = config.separationWeight || 10.0;
         this.alignmentWeight = config.alignmentWeight || 0.2;
         this.cohesionWeight = config.cohesionWeight || 0.02;
         this.playerAttackWeight = config.playerAttackWeight || 1.0;
 
-        // Initialize timing
+        // Cooldown de ataque
         this.timeSinceLastAttack = this.attackCooldown;
 
-        // Distance optimization
+        // Optimización de distancia (?)
         this._distanceSquared = Infinity;
         this._lastPlayerPos = { x: -999999, y: -999999 };
         this.distanceToPlayer = Infinity;
@@ -36,37 +36,21 @@ export class BaseEnemy extends Entity {
 
         this.attackRange = 50;
 
-        // Create sprite (implemented by child classes)
+        // Crea el sprite del enemigo
         this.createSprite();
 
-        // Create state machine (implemented by child classes)
+        // Crear state machine
         this.createStateMachine();
-
-        // this.position = {
-        //     x: 0,
-        //     y: 0,
-        // };
-        // this.sprite.position.copyFrom(this.position);
-
-        // this.stateMachine = new StateMachine(this, this.player);
-        // this.stateMachine.setState(new WalkState());
     }
 
-    createSprite() {
-        // this.sprite = new PIXI.AnimatedSprite(
-        //     this.enemyAssets.demon.animations.walkUp
-        // );
-        // this.sprite.currentAnimation = "walkUp";
-        // this.sprite.animationSpeed = 0.3;
-        // this.sprite.play();
-    }
+    // Se debe implementar en cada enemigo
+    createSprite() {}
 
-    createStateMachine() {
-        //
-    }
+    // Se debe implementar en cada enemigo
+    createStateMachine() {}
 
     update(ticker) {
-        // Update attack cooldown timer
+        // Actualiza el tiempo desde el último ataque
         this.timeSinceLastAttack += ticker.deltaMS;
 
         // Trae la lista de entidades cercanas una vez usando el spatial hash
@@ -75,13 +59,13 @@ export class BaseEnemy extends Entity {
 
         this.stateMachine.updateEnemy(ticker, this.player);
 
-        // Apply boids forces
+        // Aplica boids
         this.applyBoidsForces(nearby);
 
         super.update(ticker);
     }
 
-    // Shared boids logic (same for all enemies)
+    // Logica de boids (misma para todos los enemigos)
     applyBoidsForces(nearby) {
         const separation = this.calculateSeparation(nearby);
         const alignment = this.calculateAlignment(nearby);
@@ -102,11 +86,11 @@ export class BaseEnemy extends Entity {
         totalForce.x += (attack?.x || 0) * this.playerAttackWeight;
         totalForce.y += (attack?.y || 0) * this.playerAttackWeight;
 
-        // Apply forces to velocity
+        // Normaliza las fuerzas
         this.velocity.x += totalForce.x;
         this.velocity.y += totalForce.y;
 
-        // Limit speed
+        // Limita la velocidad
         const length = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
         if (length > this.speed) {
             this.velocity.x = (this.velocity.x / length) * this.speed;
@@ -115,23 +99,21 @@ export class BaseEnemy extends Entity {
     }
 
     updatePlayerDistanceOptimized() {
-        // Check if player moved significantly since last calculation
+        // Revisa si el jugador se movió significativamente desde el último cálculo
         const playerMoved =
             Math.abs(this.player.position.x - this._lastPlayerPos.x) > 10 ||
             Math.abs(this.player.position.y - this._lastPlayerPos.y) > 10;
 
-        // Only recalculate if player moved or we don't have a cached value
+        // Si el jugador se movió o es la primera vez que se calcula, actualiza la distancia
         if (playerMoved || this._distanceSquared === Infinity) {
             const dx = this.player.position.x - this.position.x;
             const dy = this.player.position.y - this.position.y;
 
-            // Store squared distance (avoid sqrt until needed)
             this._distanceSquared = dx * dx + dy * dy;
 
-            // Only calculate actual distance when needed for attack range
+            // Solo calcula la distancia real cuando sea necesario para el rango de ataque
             this.distanceToPlayer = Math.sqrt(this._distanceSquared);
 
-            // Cache player position
             this._lastPlayerPos.x = this.player.position.x;
             this._lastPlayerPos.y = this.player.position.y;
         }

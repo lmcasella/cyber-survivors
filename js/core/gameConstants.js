@@ -1,5 +1,5 @@
 export const GAME_CONFIG = {
-    // Weapon configurations
+    // Configuracion de armas
     WEAPONS: {
         BOW: {
             name: "Arco",
@@ -35,21 +35,21 @@ export const GAME_CONFIG = {
         },
     },
 
-    // PowerUp configurations
+    // Configuracion de powerups
     POWERUPS: {
-        SPAWN_INTERVAL: 8000, // 8 seconds between spawns
-        MAX_ON_SCREEN: 4, // Maximum powerups on screen
-        PICKUP_RADIUS: 25, // How close player needs to be
-        SPAWN_DISTANCE_MIN: 150, // Minimum spawn distance from player
-        SPAWN_DISTANCE_MAX: 400, // Maximum spawn distance from player
+        SPAWN_INTERVAL: 8000,
+        MAX_ON_SCREEN: 4, // Limite de powerups en pantalla
+        PICKUP_RADIUS: 25,
+        SPAWN_DISTANCE_MIN: 150,
+        SPAWN_DISTANCE_MAX: 400,
 
-        // PowerUp specific configs
+        // Efectos de powerups
         HEALTH_HEAL_AMOUNT: 25,
-        SPEED_INCREASE: 0.5,
+        SPEED_INCREASE: 0.3,
         MAX_PLAYER_HEALTH: 100,
         MAX_PLAYER_SPEED: 10,
 
-        // Rarity weights
+        // Rareza
         WEIGHTS: {
             health: 4, // Common
             speed: 2, // Uncommon
@@ -60,42 +60,42 @@ export const GAME_CONFIG = {
         },
     },
 
-    // Enemy configurations
+    // Configuracion de enemigos
     ENEMIES: {
-        SPAWN_DISTANCE_MIN: 10, // cells
-        SPAWN_DISTANCE_MAX: 20, // cells
+        SPAWN_DISTANCE_MIN: 10, // celdas
+        SPAWN_DISTANCE_MAX: 20, // celdas
 
-        // Wave progression
-        GRUNT_BASE_COUNT: 3,
+        // OLeadas
+        GRUNT_BASE_COUNT: 300,
         GRUNT_WAVE_MULTIPLIER: 2,
         FAST_BASE_COUNT: 1,
         FAST_WAVE_MULTIPLIER: 1,
 
-        // Difficulty scaling
-        HEALTH_SCALE_PER_WAVE: 1.1, // 10% more health per wave
-        DAMAGE_SCALE_PER_WAVE: 1.05, // 5% more damage per wave
-        SPEED_SCALE_PER_WAVE: 1.02, // 2% faster per wave
+        // Escalado de enemigos
+        HEALTH_SCALE_PER_WAVE: 1.1, // +10% de vida por oleada
+        DAMAGE_SCALE_PER_WAVE: 1.05, // +5% de daño por oleada
+        SPEED_SCALE_PER_WAVE: 1.02, // +2% de velocidad por oleada
     },
 
-    // Player configurations
+    // Configuracion del jugador
     PLAYER: {
         BASE_HEALTH: 100,
         BASE_SPEED: 5,
-        INVINCIBILITY_TIME: 1500, // 1 second after taking damage
+        INVINCIBILITY_TIME: 1500,
 
-        // Visual feedback
-        DAMAGE_TINT: 0xff0000, // Red when damaged
-        INVINCIBLE_TINT: 0xaaaaaa, // Gray when invincible
+        // Feedback visual
+        DAMAGE_TINT: 0xff0000, // Rojo
+        INVINCIBLE_TINT: 0xaaaaaa, // Gris
     },
 
-    // Pathfinding settings
+    // Configuracion pathfinding
     PATHFINDING: {
         GRID_SIZE: 32,
         UPDATE_INTERVAL: 500,
         REACHED_THRESHOLD: 20,
     },
 
-    // Obstacle settings
+    // Configuracion de obstaculos
     OBSTACLES: {
         TREE_COUNT: 15,
         ROCK_COUNT: 10,
@@ -103,7 +103,7 @@ export const GAME_CONFIG = {
         SCATTERED_COUNT: 20,
     },
 
-    // Z-Index layers
+    // Z-Index
     Z_INDEX: {
         BACKGROUND: 0,
         OBSTACLES: 100,
@@ -113,36 +113,37 @@ export const GAME_CONFIG = {
         UI: 1000,
     },
 
-    // Game progression
+    // Progresion del juego
     WAVES: {
-        COMPLETION_DELAY: 3000, // 3 seconds between waves
-        VICTORY_WAVE: 20, // Game ends at wave 20
+        COMPLETION_DELAY: 3000,
+        VICTORY_WAVE: 15,
 
-        // Special wave events
-        BOSS_WAVES: [5, 10, 15], // Waves with extra difficulty
-        POWERUP_WAVES: [3, 7, 12], // Guaranteed powerup spawn
+        // Eventos especiales por oleadas
+        BOSS_WAVES: [5, 10, 15],
+        POWERUP_WAVES: [3, 7, 12],
     },
 
-    // Visual settings
+    // Configuracion visual
     GRAPHICS: {
         GRID_COLOR: 0x333333,
         GRID_ALPHA: 0.3,
         HIT_EFFECT_DURATION: 200,
         HIT_EFFECT_COLOR: 0xff4444,
 
-        // Projectile settings
+        // Configuracion de proyectiles
         PROJECTILE_RADIUS: 4,
         PROJECTILE_SPEED: 300,
         PROJECTILE_LIFETIME: 3000,
     },
 
+    // Configuacion de audio
     AUDIO: {
-        MUSIC_VOLUME: 0.5,
-        SFX_VOLUME: 0.7,
+        MUSIC_VOLUME: 0.1,
+        SFX_VOLUME: 0.2,
         ENABLE_MUSIC: true,
         ENABLE_SFX: true,
 
-        // Sound file paths
+        // Sonidos y musica
         SOUNDS: {
             MUSIC: "assets/fx/music.wav",
             ENEMY_DEATH: "assets/fx/enemy_death.wav",
@@ -151,7 +152,7 @@ export const GAME_CONFIG = {
         },
     },
 
-    // Debug settings
+    // Debug
     DEBUG: {
         SHOW_GRID: true,
         SHOW_COLLISION_BOXES: false,

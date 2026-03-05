@@ -12,7 +12,7 @@ export class AudioManager {
         try {
             console.log("🎵 Loading audio assets...");
 
-            // Load all audio files
+            // Cargar archivos de audio
             const audioFiles = [
                 "assets/fx/music.wav",
                 "assets/fx/enemy_death.wav",
@@ -20,7 +20,7 @@ export class AudioManager {
                 "assets/fx/damaged.wav",
             ];
 
-            // Store audio assets
+            // Guardar en el map
             this.sounds.set("music", audioFiles[0]);
             this.sounds.set("enemy_death", audioFiles[1]);
             this.sounds.set("projectile", audioFiles[2]);
@@ -34,15 +34,13 @@ export class AudioManager {
         }
     }
 
-    // Play background music
+    // Ejecutar musica al iniciar el juego
     playMusic() {
         if (!this.isMusicEnabled || !this.sounds.has("music")) return;
 
         try {
-            // Stop existing music if playing
             this.stopMusic();
 
-            // Create new audio instance for music
             const musicUrl = this.sounds.get("music");
             this.music = new Audio(musicUrl);
 
@@ -58,7 +56,7 @@ export class AudioManager {
         }
     }
 
-    // Stop background music
+    // Parar musica
     stopMusic() {
         if (this.music) {
             this.music.pause();
@@ -67,7 +65,7 @@ export class AudioManager {
         }
     }
 
-    // Play sound effect
+    // Ejecutar efectos de sonido
     playSfx(soundName, volume = 1.0) {
         if (!this.isSfxEnabled || !this.sounds.has(soundName)) return;
 
@@ -84,22 +82,22 @@ export class AudioManager {
         }
     }
 
-    // Play enemy death sound
+    // Sonido de muerte
     playEnemyDeath() {
         this.playSfx("enemy_death", 0.8);
     }
 
-    // Play projectile sound
+    // Sonido de disparo
     playProjectileSound() {
         this.playSfx("projectile", 0.6);
     }
 
-    // Play player damaged sound
+    // Sonido de daño al jugador
     playPlayerDamaged() {
         this.playSfx("damaged", 0.5);
     }
 
-    // Volume controls
+    // Control de volumen
     setMusicVolume(volume) {
         this.musicVolume = Math.max(0, Math.min(1, volume));
         if (this.music) {
@@ -111,7 +109,6 @@ export class AudioManager {
         this.sfxVolume = Math.max(0, Math.min(1, volume));
     }
 
-    // Toggle controls
     toggleMusic() {
         this.isMusicEnabled = !this.isMusicEnabled;
         if (this.isMusicEnabled) {
@@ -127,7 +124,6 @@ export class AudioManager {
         return this.isSfxEnabled;
     }
 
-    // Get current settings
     getSettings() {
         return {
             musicEnabled: this.isMusicEnabled,
